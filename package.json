@@ -1,0 +1,42 @@
+{
+  "name": "gb-mis",
+  "private": true,
+  "version": "0.1.0",
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "typecheck": "turbo typecheck",
+    "lint": "turbo lint",
+    "test": "turbo test",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,md}\" --ignore-path .gitignore",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,json,md}\" --ignore-path .gitignore",
+    "db:generate": "pnpm --filter=@gb-mis/db generate",
+    "db:migrate": "pnpm --filter=@gb-mis/db migrate",
+    "db:seed": "pnpm --filter=@gb-mis/db seed",
+    "db:studio": "pnpm --filter=@gb-mis/db studio",
+    "db:reset": "pnpm --filter=@gb-mis/db reset",
+    "openapi:generate": "pnpm --filter=@gb-mis/api openapi:generate",
+    "openapi:check": "pnpm --filter=@gb-mis/api openapi:check"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.0.0",
+    "@commitlint/config-conventional": "^19.0.0",
+    "@types/node": "^22.0.0",
+    "husky": "^9.0.0",
+    "lint-staged": "^15.0.0",
+    "prettier": "^3.3.0",
+    "turbo": "^2.3.0",
+    "typescript": "^5.4.0"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": ["eslint --fix", "prettier --write"],
+    "*.{js,json,md,yaml,yml}": ["prettier --write"]
+  },
+  "commitlint": {
+    "extends": ["@commitlint/config-conventional"]
+  }
+}

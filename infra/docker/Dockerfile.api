@@ -1,0 +1,52 @@
+# Build stage
+FROM node:22-slim AS builder
+WORKDIR /build
+
+# Enable pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+# Copy workspace manifests first for layer caching
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+COPY turbo.json tsconfig.base.json .prettierrc ./
+COPY packages/types/package.json packages/types/
+COPY packages/db/package.json packages/db/
+COPY packages/indicators/package.json packages/indicators/
+COPY packages/auth/package.json packages/auth/
+COPY packages/eslint-config/package.json packages/eslint-config/
+COPY apps/api/package.json apps/api/
+
+RUN pnpm install --frozen-lockfile
+
+# Copy source
+COPY packages/types packages/types/
+COPY packages/db packages/db/
+COPY packages/indicators packages/indicators/
+COPY packages/auth packages/auth/
+COPY apps/api apps/api/
+
+# Generate Prisma client
+RUN pnpm --filter=@gb-mis/db db:generate
+
+# Build
+RUN pnpm --filter=@gb-mis/api build
+
+# Runtime stage
+FROM node:22-slim AS runner
+WORKDIR /app
+
+RUN apt-get update -y && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
+
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+COPY --from=builder /build/node_modules ./node_modules
+COPY --from=builder /build/apps/api/dist ./dist
+COPY --from=builder /build/apps/api/package.json ./
+COPY --from=builder /build/packages/db/prisma ./prisma
+COPY --from=builder /build/node_modules/.prisma ./node_modules/.prisma
+
+EXPOSE 4000
+
+ENV NODE_ENV=production
+ENV API_PORT=4000
+
+CMD ["node", "dist/main.js"]

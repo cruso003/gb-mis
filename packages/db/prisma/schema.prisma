@@ -1,0 +1,820 @@
+// GB MIS — Prisma schema
+// Source of truth for the database structure.
+// See DATA_MODEL.md for the full rationale behind every design choice.
+// Do NOT add UPDATE or DELETE operations to audit tables — ever.
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_DIRECT_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  SUPERVISOR
+  CASE_WORKER
+  DATA_ENTRY_CLERK
+  ANALYST
+  VIEWER
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  DISABLED
+}
+
+enum OrgUnitLevel {
+  NATIONAL
+  COUNTY
+  DISTRICT
+  COMMUNITY
+  FACILITY
+}
+
+enum Sex {
+  FEMALE
+  MALE
+  INTERSEX
+  UNDISCLOSED
+}
+
+enum DisabilityStatus {
+  VISUAL
+  HEARING
+  MOBILITY
+  COGNITIVE
+  SELF_CARE
+  COMMUNICATION
+  NONE
+}
+
+enum BeneficiaryStatus {
+  ENROLLED
+  ACTIVE
+  GRADUATED
+  WITHDRAWN
+  DECEASED
+}
+
+enum EnrollmentSource {
+  LWEP_COMPONENT_1
+  LWEP_COMPONENT_2
+  LWEP_COMPONENT_3
+  REALISE_XREF
+  OTHER
+}
+
+enum ConsentScope {
+  DATA_COLLECTION
+  DHIS2_SHARING
+  PHOTO_USE
+  RESEARCH
+}
+
+enum GrantStatus {
+  PENDING
+  DISBURSED
+  CANCELLED
+}
+
+enum HouseholdRelationship {
+  SELF
+  SPOUSE
+  CHILD
+  PARENT
+  SIBLING
+  OTHER
+}
+
+enum VslaMemberRole {
+  CHAIR
+  TREASURER
+  SECRETARY
+  MEMBER
+}
+
+enum SessionType {
+  SASA_AWARENESS
+  SASA_SUPPORT
+  SASA_ACTION
+  ASRH
+  OTHER
+}
+
+enum CaseStatus {
+  OPEN
+  IN_SERVICE
+  REFERRED
+  CLOSED_SUCCESSFUL
+  CLOSED_LOST_CONTACT
+  CLOSED_WITHDRAWN
+}
+
+enum CasePriority {
+  ROUTINE
+  URGENT
+  CRITICAL
+}
+
+enum IntakeChannel {
+  COMMUNITY
+  FACILITY
+  HOTLINE
+  REFERRAL
+  OTHER
+}
+
+enum ViolenceType {
+  PHYSICAL
+  SEXUAL
+  PSYCHOLOGICAL
+  ECONOMIC
+  NEGLECT
+  HARMFUL_PRACTICE
+}
+
+enum PerpetratorRelationship {
+  INTIMATE_PARTNER
+  FORMER_INTIMATE_PARTNER
+  FAMILY_MEMBER
+  COMMUNITY_MEMBER
+  STRANGER
+  AUTHORITY_FIGURE
+  OTHER
+}
+
+enum ServiceType {
+  MEDICAL
+  PSYCHOSOCIAL
+  LEGAL
+  SHELTER
+  ECONOMIC
+  OTHER
+}
+
+enum ServiceOutcome {
+  COMPLETED
+  IN_PROGRESS
+  DECLINED
+  FOLLOW_UP_NEEDED
+}
+
+enum ReferralOutcome {
+  COMPLETED
+  DECLINED
+  UNREACHABLE
+  IN_PROGRESS
+}
+
+enum AttachmentKind {
+  CONSENT
+  MEDICAL_REPORT
+  POLICE_REPORT
+  PHOTO
+  OTHER
+}
+
+enum IndicatorFramework {
+  BPFA
+  SDG
+  CEDAW
+  MAPUTO
+  AU_WPS
+  ARREST
+  LWEP
+  NATIONAL
+}
+
+enum Periodicity {
+  ANNUAL
+  QUARTERLY
+  MONTHLY
+  BIENNIAL
+  EVERY_5Y
+  EVENT_DRIVEN
+}
+
+enum Disaggregation {
+  SEX
+  AGE
+  LOCATION
+  DISABILITY
+  WEALTH_QUINTILE
+}
+
+enum IndicatorSource {
+  COMPUTED_FROM_CASES
+  COMPUTED_FROM_BENEFICIARIES
+  IMPORTED_LISGIS
+  IMPORTED_MOH
+  MANUAL_ENTRY
+  DHIS2_PULL
+}
+
+enum QualityFlag {
+  VERIFIED
+  UNVERIFIED
+  ESTIMATE
+  PROVISIONAL
+}
+
+enum AuditAction {
+  CREATE
+  READ
+  UPDATE
+  DELETE
+  EXPORT
+  LOGIN
+  LOGIN_FAIL
+  LOGOUT
+  MFA_CHALLENGE
+  MFA_ENROLL
+  ROLE_GRANT
+  ROLE_REVOKE
+  CONFIG_CHANGE
+  KEY_ROTATE
+  SYNC_PUSH
+  SYNC_PULL
+  REPORT_GENERATE
+  DATA_SUBJECT_REQUEST
+  ERASURE_APPROVE
+}
+
+enum SyncStatus {
+  PENDING
+  IN_PROGRESS
+  SYNCED
+  CONFLICT
+  ERROR
+}
+
+// ─── 1. Identity Context ──────────────────────────────────────────────────────
+
+model User {
+  id               String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  keycloakSubject  String     @unique
+  // Encrypted with pgcrypto — stored as bytea. Use encryption.ts helpers.
+  emailEncrypted   Bytes?
+  displayName      String
+  status           UserStatus @default(ACTIVE)
+  mfaEnrolled      Boolean    @default(false)
+  lastLoginAt      DateTime?  @db.Timestamptz
+  createdAt        DateTime   @default(now()) @db.Timestamptz
+  updatedAt        DateTime   @updatedAt @db.Timestamptz
+  deletedAt        DateTime?  @db.Timestamptz
+
+  roles            UserRole[]
+  orgUnitScopes    UserOrgUnitScope[]
+  sessions         Session[]
+  casesWorking     GbvCase[]          @relation("AssignedCaseWorker")
+  casesSupervising GbvCase[]          @relation("AssignedSupervisor")
+  casesCreated     GbvCase[]          @relation("CaseIntakedBy")
+  auditEvents      AuditEvent[]       @relation("ActorUser")
+
+  @@map("users")
+}
+
+model UserRole {
+  userId       String   @db.Uuid
+  role         Role
+  assignedById String   @db.Uuid
+  assignedAt   DateTime @default(now()) @db.Timestamptz
+
+  user         User     @relation(fields: [userId], references: [id])
+
+  @@id([userId, role])
+  @@map("user_roles")
+}
+
+model UserOrgUnitScope {
+  userId       String   @db.Uuid
+  orgUnitId    String   @db.Uuid
+  assignedById String   @db.Uuid
+  assignedAt   DateTime @default(now()) @db.Timestamptz
+
+  user         User     @relation(fields: [userId], references: [id])
+  orgUnit      OrgUnit  @relation(fields: [orgUnitId], references: [id])
+
+  @@id([userId, orgUnitId])
+  @@map("user_org_unit_scopes")
+}
+
+model Session {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId            String    @db.Uuid
+  deviceFingerprint String?
+  ipAddress         String?
+  userAgent         String?
+  startedAt         DateTime  @default(now()) @db.Timestamptz
+  endedAt           DateTime? @db.Timestamptz
+  revokedAt         DateTime? @db.Timestamptz
+
+  user              User      @relation(fields: [userId], references: [id])
+
+  @@map("sessions")
+}
+
+// ─── 2. Organisation Context ──────────────────────────────────────────────────
+
+model OrgUnit {
+  id           String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  parentId     String?      @db.Uuid
+  level        OrgUnitLevel
+  code         String       @unique
+  name         String
+  shortName    String
+  // PostGIS geometry — use raw SQL for spatial queries
+  // geometry  Unsupported("geometry(Geometry, 4326)")?
+  // centroid  Unsupported("geometry(Point, 4326)")?
+  dhis2Id      String?
+  lwepCovered  Boolean      @default(false)
+  createdAt    DateTime     @default(now()) @db.Timestamptz
+  updatedAt    DateTime     @updatedAt @db.Timestamptz
+  deletedAt    DateTime?    @db.Timestamptz
+
+  parent       OrgUnit?     @relation("OrgUnitParent", fields: [parentId], references: [id])
+  children     OrgUnit[]    @relation("OrgUnitParent")
+  userScopes   UserOrgUnitScope[]
+  groupMembers OrgUnitGroupMember[]
+  cases        GbvCase[]
+  beneficiaries Beneficiary[]
+  sessions     CommunitySession[]
+  vslaGroups   VslaGroup[]
+  indicatorValues IndicatorValue[]
+  indicatorTargets IndicatorTarget[]
+  secondaryDataPoints SecondaryDataPoint[]
+
+  @@map("org_units")
+}
+
+model OrgUnitGroup {
+  id      String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name    String
+  members OrgUnitGroupMember[]
+
+  @@map("org_unit_groups")
+}
+
+model OrgUnitGroupMember {
+  groupId   String       @db.Uuid
+  orgUnitId String       @db.Uuid
+
+  group     OrgUnitGroup @relation(fields: [groupId], references: [id])
+  orgUnit   OrgUnit      @relation(fields: [orgUnitId], references: [id])
+
+  @@id([groupId, orgUnitId])
+  @@map("org_unit_group_members")
+}
+
+// ─── 3. Beneficiaries Context ─────────────────────────────────────────────────
+
+model Beneficiary {
+  id                   String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  beneficiaryCode      String              @unique
+  // PII — encrypted with pgcrypto. Access via encryption.ts helpers.
+  nationalIdEncrypted  Bytes?
+  nationalIdSearchHash Bytes?
+  fullNameEncrypted    Bytes               // Required
+  dateOfBirth          DateTime            @db.Date
+  sex                  Sex
+  genderIdentityEncrypted Bytes?
+  disabilityStatuses   DisabilityStatus[]
+  orgUnitId            String              @db.Uuid
+  householdId          String?             @db.Uuid
+  enrollmentSource     EnrollmentSource
+  realiseHouseholdRef  String?
+  consentRecordId      String              @unique @db.Uuid
+  status               BeneficiaryStatus   @default(ENROLLED)
+  createdById          String              @db.Uuid
+  updatedById          String              @db.Uuid
+  createdAt            DateTime            @default(now()) @db.Timestamptz
+  updatedAt            DateTime            @updatedAt @db.Timestamptz
+  deletedAt            DateTime?           @db.Timestamptz
+
+  orgUnit              OrgUnit             @relation(fields: [orgUnitId], references: [id])
+  household            Household?          @relation(fields: [householdId], references: [id])
+  consentRecord        ConsentRecord       @relation(fields: [consentRecordId], references: [id])
+  householdMemberships HouseholdMember[]
+  livelihoodGrants     LivelihoodGrant[]
+  vslaMembers          VslaMembership[]
+  sessionAttendances   SessionAttendance[]
+  cases                GbvCase[]           @relation("SurvivorCase")
+
+  @@index([nationalIdSearchHash])
+  @@index([orgUnitId])
+  @@index([status])
+  @@map("beneficiaries")
+}
+
+model Household {
+  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  householdCode   String            @unique
+  orgUnitId       String            @db.Uuid
+  headOfHouseholdId String?         @db.Uuid
+  memberCount     Int               @db.SmallInt
+  createdAt       DateTime          @default(now()) @db.Timestamptz
+  updatedAt       DateTime          @updatedAt @db.Timestamptz
+  deletedAt       DateTime?         @db.Timestamptz
+
+  members         Beneficiary[]
+  householdMembers HouseholdMember[]
+
+  @@map("households")
+}
+
+model HouseholdMember {
+  householdId      String                @db.Uuid
+  beneficiaryId    String                @db.Uuid
+  relationship     HouseholdRelationship
+  primaryResidence Boolean               @default(false)
+
+  household        Household             @relation(fields: [householdId], references: [id])
+  beneficiary      Beneficiary           @relation(fields: [beneficiaryId], references: [id])
+
+  @@id([householdId, beneficiaryId])
+  @@map("household_members")
+}
+
+model ConsentRecord {
+  id               String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  beneficiaryId    String        @db.Uuid
+  scopes           ConsentScope[]
+  grantedAt        DateTime      @db.Timestamptz
+  expiresAt        DateTime?     @db.Timestamptz
+  revokedAt        DateTime?     @db.Timestamptz
+  evidenceObjectKey String?
+
+  beneficiary      Beneficiary?
+
+  @@map("consent_records")
+}
+
+model LivelihoodGrant {
+  id                  String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  beneficiaryId       String      @db.Uuid
+  grantCycle          String
+  amountLrd           Decimal     @db.Decimal(18, 2)
+  amountUsd           Decimal     @db.Decimal(18, 2)
+  disbursedAt         DateTime    @db.Timestamptz
+  partnerFintechTxnRef String?
+  status              GrantStatus
+  createdById         String      @db.Uuid
+  createdAt           DateTime    @default(now()) @db.Timestamptz
+  updatedAt           DateTime    @updatedAt @db.Timestamptz
+
+  beneficiary         Beneficiary @relation(fields: [beneficiaryId], references: [id])
+
+  @@map("livelihood_grants")
+}
+
+model VslaGroup {
+  id        String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String
+  orgUnitId String          @db.Uuid
+  formedAt  DateTime        @db.Date
+  createdAt DateTime        @default(now()) @db.Timestamptz
+  updatedAt DateTime        @updatedAt @db.Timestamptz
+  deletedAt DateTime?       @db.Timestamptz
+
+  orgUnit   OrgUnit         @relation(fields: [orgUnitId], references: [id])
+  members   VslaMembership[]
+
+  @@map("vsla_groups")
+}
+
+model VslaMembership {
+  vslaGroupId   String        @db.Uuid
+  beneficiaryId String        @db.Uuid
+  role          VslaMemberRole
+  joinedAt      DateTime      @db.Date
+  leftAt        DateTime?     @db.Date
+
+  vslaGroup     VslaGroup     @relation(fields: [vslaGroupId], references: [id])
+  beneficiary   Beneficiary   @relation(fields: [beneficiaryId], references: [id])
+
+  @@id([vslaGroupId, beneficiaryId])
+  @@map("vsla_memberships")
+}
+
+model CommunitySession {
+  id            String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type          SessionType
+  orgUnitId     String              @db.Uuid
+  facilitatorId String              @db.Uuid
+  heldAt        DateTime            @db.Timestamptz
+  topic         String
+  notes         String?
+  createdAt     DateTime            @default(now()) @db.Timestamptz
+  updatedAt     DateTime            @updatedAt @db.Timestamptz
+
+  orgUnit       OrgUnit             @relation(fields: [orgUnitId], references: [id])
+  attendees     SessionAttendance[]
+
+  @@map("community_sessions")
+}
+
+model SessionAttendance {
+  sessionId     String           @db.Uuid
+  beneficiaryId String?          @db.Uuid
+  sexAgeBracket String?
+  attendedAt    DateTime         @db.Timestamptz
+
+  session       CommunitySession @relation(fields: [sessionId], references: [id])
+  beneficiary   Beneficiary?     @relation(fields: [beneficiaryId], references: [id])
+
+  @@id([sessionId, attendedAt, beneficiaryId])
+  @@map("session_attendances")
+}
+
+// ─── 4. Cases Context (GBV) ──────────────────────────────────────────────────
+
+model GbvCase {
+  id                    String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  caseNumber            String                @unique
+  survivorId            String?               @db.Uuid
+  // Used when survivorId is null (anonymous case): { sex, ageBracket, disabilityStatuses }
+  anonymisedSurvivor    Json?
+  orgUnitId             String                @db.Uuid
+  intakeChannel         IntakeChannel
+  intakeDate            DateTime              @db.Date
+  intakeByUserId        String                @db.Uuid
+  firstIncidentDate     DateTime?             @db.Date
+  mostRecentIncidentDate DateTime?            @db.Date
+  status                CaseStatus            @default(OPEN)
+  priority              CasePriority          @default(ROUTINE)
+  assignedCaseWorkerId  String?               @db.Uuid
+  assignedSupervisorId  String?               @db.Uuid
+  supervisorReviewedAt  DateTime?             @db.Timestamptz
+  closedAt              DateTime?             @db.Timestamptz
+  clientEventId         String?               @unique
+  createdAt             DateTime              @default(now()) @db.Timestamptz
+  updatedAt             DateTime              @updatedAt @db.Timestamptz
+  deletedAt             DateTime?             @db.Timestamptz
+
+  survivor              Beneficiary?          @relation("SurvivorCase", fields: [survivorId], references: [id])
+  orgUnit               OrgUnit               @relation(fields: [orgUnitId], references: [id])
+  intakedBy             User                  @relation("CaseIntakedBy", fields: [intakeByUserId], references: [id])
+  assignedCaseWorker    User?                 @relation("AssignedCaseWorker", fields: [assignedCaseWorkerId], references: [id])
+  assignedSupervisor    User?                 @relation("AssignedSupervisor", fields: [assignedSupervisorId], references: [id])
+  incidents             Incident[]
+  servicesProvided      ServiceProvided[]
+  referrals             Referral[]
+  attachments           CaseAttachment[]
+
+  @@index([orgUnitId])
+  @@index([status])
+  @@index([survivorId])
+  @@map("gbv_cases")
+}
+
+model Incident {
+  id                        String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  caseId                    String                   @db.Uuid
+  occurredAt                DateTime?                @db.Timestamptz
+  occurrenceOrgUnitId       String?                  @db.Uuid
+  types                     ViolenceType[]
+  perpetratorRelationship   PerpetratorRelationship?
+  // { ageBracket, sex } — NEVER a name
+  perpetratorDemographics   Json?
+  weaponUsed                Boolean                  @default(false)
+  // Encrypted — use encryption.ts helpers; shown as "[encrypted]" without decrypt permission
+  notesEncrypted            Bytes?
+  createdAt                 DateTime                 @default(now()) @db.Timestamptz
+  updatedAt                 DateTime                 @updatedAt @db.Timestamptz
+
+  case                      GbvCase                  @relation(fields: [caseId], references: [id])
+
+  @@map("incidents")
+}
+
+model ServiceProvided {
+  id                String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  caseId            String        @db.Uuid
+  type              ServiceType
+  providerOrgUnitId String        @db.Uuid
+  providedAt        DateTime      @db.Timestamptz
+  outcome           ServiceOutcome
+  notesEncrypted    Bytes?
+  createdAt         DateTime      @default(now()) @db.Timestamptz
+  updatedAt         DateTime      @updatedAt @db.Timestamptz
+
+  case              GbvCase       @relation(fields: [caseId], references: [id])
+
+  @@map("services_provided")
+}
+
+model Referral {
+  id             String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  caseId         String          @db.Uuid
+  toOrgUnitId    String          @db.Uuid
+  toService      ServiceType
+  referredAt     DateTime        @db.Timestamptz
+  acknowledgedAt DateTime?       @db.Timestamptz
+  completedAt    DateTime?       @db.Timestamptz
+  outcome        ReferralOutcome?
+  notesEncrypted Bytes?
+  createdAt      DateTime        @default(now()) @db.Timestamptz
+  updatedAt      DateTime        @updatedAt @db.Timestamptz
+
+  case           GbvCase         @relation(fields: [caseId], references: [id])
+
+  @@map("referrals")
+}
+
+model CaseAttachment {
+  id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  caseId       String         @db.Uuid
+  kind         AttachmentKind
+  objectKey    String
+  uploadedById String         @db.Uuid
+  uploadedAt   DateTime       @db.Timestamptz
+  sha256       Bytes
+
+  case         GbvCase        @relation(fields: [caseId], references: [id])
+
+  @@map("case_attachments")
+}
+
+// ─── 5. Indicators Context ────────────────────────────────────────────────────
+
+model Indicator {
+  id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code             String             @unique
+  name             String
+  description      String
+  framework        IndicatorFramework
+  area             String
+  unit             String
+  periodicity      Periodicity
+  disaggregations  Disaggregation[]
+  custodianAgency  String
+  leadMinistry     String
+  formula          String?
+  dhis2DataElementId String?
+  dhis2CategoryComboId String?
+  active           Boolean            @default(true)
+  createdAt        DateTime           @default(now()) @db.Timestamptz
+  updatedAt        DateTime           @updatedAt @db.Timestamptz
+
+  values           IndicatorValue[]
+  targets          IndicatorTarget[]
+  secondaryDataPoints SecondaryDataPoint[]
+
+  @@map("indicators")
+}
+
+model IndicatorValue {
+  id              String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  indicatorId     String          @db.Uuid
+  orgUnitId       String          @db.Uuid
+  periodStart     DateTime        @db.Date
+  periodEnd       DateTime        @db.Date
+  value           Decimal         @db.Decimal(18, 6)
+  disaggregations Json            @default("{}")
+  source          IndicatorSource
+  sourceReference String?
+  qualityFlag     QualityFlag     @default(UNVERIFIED)
+  enteredById     String?         @db.Uuid
+  importedAt      DateTime?       @db.Timestamptz
+  lastComputedAt  DateTime?       @db.Timestamptz
+  createdAt       DateTime        @default(now()) @db.Timestamptz
+  updatedAt       DateTime        @updatedAt @db.Timestamptz
+
+  indicator       Indicator       @relation(fields: [indicatorId], references: [id])
+  orgUnit         OrgUnit         @relation(fields: [orgUnitId], references: [id])
+
+  @@unique([indicatorId, orgUnitId, periodStart, periodEnd, disaggregations])
+  @@index([indicatorId, orgUnitId])
+  @@index([qualityFlag])
+  @@map("indicator_values")
+}
+
+model IndicatorTarget {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  indicatorId  String    @db.Uuid
+  orgUnitId    String?   @db.Uuid
+  targetYear   Int
+  targetValue  Decimal   @db.Decimal(18, 6)
+  source       String
+  createdAt    DateTime  @default(now()) @db.Timestamptz
+  updatedAt    DateTime  @updatedAt @db.Timestamptz
+
+  indicator    Indicator @relation(fields: [indicatorId], references: [id])
+  orgUnit      OrgUnit?  @relation(fields: [orgUnitId], references: [id])
+
+  @@map("indicator_targets")
+}
+
+// ─── 6. Secondary Data Context ────────────────────────────────────────────────
+
+model SecondaryDataset {
+  id                    String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                  String
+  sourceAgency          String
+  collectionStart       DateTime             @db.Date
+  collectionEnd         DateTime             @db.Date
+  ingestedAt            DateTime             @db.Timestamptz
+  methodology           String
+  documentationObjectKey String?
+  createdAt             DateTime             @default(now()) @db.Timestamptz
+  updatedAt             DateTime             @updatedAt @db.Timestamptz
+
+  dataPoints            SecondaryDataPoint[]
+
+  @@map("secondary_datasets")
+}
+
+model SecondaryDataPoint {
+  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  datasetId       String            @db.Uuid
+  indicatorId     String?           @db.Uuid
+  orgUnitId       String            @db.Uuid
+  periodStart     DateTime          @db.Date
+  periodEnd       DateTime          @db.Date
+  variable        String
+  value           Json
+  disaggregations Json              @default("{}")
+  qualityFlag     QualityFlag       @default(UNVERIFIED)
+  createdAt       DateTime          @default(now()) @db.Timestamptz
+
+  dataset         SecondaryDataset  @relation(fields: [datasetId], references: [id])
+  indicator       Indicator?        @relation(fields: [indicatorId], references: [id])
+  orgUnit         OrgUnit           @relation(fields: [orgUnitId], references: [id])
+
+  @@map("secondary_data_points")
+}
+
+// ─── 7. Audit Context (append-only) ──────────────────────────────────────────
+// NEVER add UPDATE or DELETE operations to these tables.
+// PostgreSQL role permissions enforce this at the DB level.
+
+model AuditEvent {
+  id                    String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  occurredAt            DateTime     @default(now()) @db.Timestamptz
+  actorUserId           String?      @db.Uuid
+  actorRole             Role?
+  actorIp               String?
+  actorDeviceFingerprint String?
+  action                AuditAction
+  entityType            String?
+  entityId              String?      @db.Uuid
+  beforeSnapshot        Json?
+  afterSnapshot         Json?
+  requestId             String       @db.Uuid
+  success               Boolean
+  reasonCode            String?
+  additionalContext     Json?
+
+  actor                 User?        @relation("ActorUser", fields: [actorUserId], references: [id])
+
+  @@index([occurredAt])
+  @@index([actorUserId])
+  @@index([entityType, entityId])
+  @@index([action])
+  @@map("audit_events")
+}
+
+model AccessLog {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  occurredAt     DateTime @default(now()) @db.Timestamptz
+  actorUserId    String   @db.Uuid
+  resourcePath   String
+  method         String   @db.VarChar(10)
+  responseStatus Int      @db.SmallInt
+  responseTimeMs Int
+
+  @@index([occurredAt])
+  @@index([actorUserId])
+  @@map("access_logs")
+}
+
+// ─── Sync Records (mobile offline sync) ──────────────────────────────────────
+
+model SyncRecord {
+  id            String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  clientEventId String     @unique
+  deviceId      String
+  userId        String     @db.Uuid
+  entityType    String
+  payload       Json
+  status        SyncStatus @default(PENDING)
+  conflictData  Json?
+  errorMessage  String?
+  attempts      Int        @default(0)
+  syncedAt      DateTime?  @db.Timestamptz
+  createdAt     DateTime   @default(now()) @db.Timestamptz
+  updatedAt     DateTime   @updatedAt @db.Timestamptz
+
+  @@index([status])
+  @@index([userId])
+  @@map("sync_records")
+}

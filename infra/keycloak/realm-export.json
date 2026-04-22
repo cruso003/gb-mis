@@ -1,0 +1,167 @@
+{
+  "id": "gb-mis",
+  "realm": "gb-mis",
+  "displayName": "GB MIS — MOGCSP",
+  "enabled": true,
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+  "permanentLockout": false,
+  "maxFailureWaitSeconds": 900,
+  "minimumQuickLoginWaitSeconds": 60,
+  "waitIncrementSeconds": 60,
+  "quickLoginCheckMilliSeconds": 1000,
+  "maxDeltaTimeSeconds": 43200,
+  "failureFactor": 5,
+  "sslRequired": "external",
+  "accessTokenLifespan": 300,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
+  "offlineSessionIdleTimeout": 2592000,
+  "otpPolicyType": "totp",
+  "otpPolicyAlgorithm": "HmacSHA1",
+  "otpPolicyInitialCounter": 0,
+  "otpPolicyDigits": 6,
+  "otpPolicyLookAheadWindow": 1,
+  "otpPolicyPeriod": 30,
+  "roles": {
+    "realm": [
+      { "name": "SUPER_ADMIN", "description": "Full system access including destructive operations" },
+      { "name": "ADMIN", "description": "County/district admin: user management, configuration" },
+      { "name": "SUPERVISOR", "description": "Case supervisor: review, approve, close cases" },
+      { "name": "CASE_WORKER", "description": "GBV case management: intake, services, referrals" },
+      { "name": "DATA_ENTRY_CLERK", "description": "Indicator data entry and beneficiary enrolment" },
+      { "name": "ANALYST", "description": "Read-only access to all aggregate data and reports" },
+      { "name": "VIEWER", "description": "Read-only access to indicators dashboard" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "gb-mis-web",
+      "name": "GB MIS Web Dashboard",
+      "description": "Next.js web dashboard for MOGCSP HQ users",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "CHANGE-IN-PRODUCTION",
+      "redirectUris": [
+        "http://localhost:3000/*",
+        "https://gbmis.mogcsp.gov.lr/*"
+      ],
+      "webOrigins": [
+        "http://localhost:3000",
+        "https://gbmis.mogcsp.gov.lr"
+      ],
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "publicClient": false,
+      "fullScopeAllowed": true,
+      "protocol": "openid-connect",
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      }
+    },
+    {
+      "clientId": "gb-mis-mobile",
+      "name": "GB MIS Mobile App",
+      "description": "Expo/React Native app for county field workers",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "CHANGE-IN-PRODUCTION",
+      "redirectUris": [
+        "gbmis://auth",
+        "exp://localhost:8081/--/auth"
+      ],
+      "webOrigins": [],
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "publicClient": true,
+      "fullScopeAllowed": false,
+      "protocol": "openid-connect",
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      }
+    },
+    {
+      "clientId": "gb-mis-api",
+      "name": "GB MIS NestJS API",
+      "description": "Backend API — validates JWTs from other clients",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "CHANGE-IN-PRODUCTION",
+      "redirectUris": [],
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "bearerOnly": true,
+      "publicClient": false,
+      "protocol": "openid-connect"
+    }
+  ],
+  "users": [
+    {
+      "username": "admin@gb-mis.test",
+      "email": "admin@gb-mis.test",
+      "firstName": "System",
+      "lastName": "Administrator",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Admin1234!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["SUPER_ADMIN"],
+      "attributes": {
+        "note": ["dev seed user — DELETE before production deployment"]
+      }
+    },
+    {
+      "username": "caseworker@gb-mis.test",
+      "email": "caseworker@gb-mis.test",
+      "firstName": "Demo",
+      "lastName": "Case Worker",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Worker1234!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["CASE_WORKER"],
+      "attributes": {
+        "note": ["dev seed user — DELETE before production deployment"]
+      }
+    },
+    {
+      "username": "analyst@gb-mis.test",
+      "email": "analyst@gb-mis.test",
+      "firstName": "Demo",
+      "lastName": "Analyst",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Analyst1234!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["ANALYST"],
+      "attributes": {
+        "note": ["dev seed user — DELETE before production deployment"]
+      }
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+
+# Turbo
+.turbo/
+
+# Environment
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/settings.json
+.idea/
+
+# Test output
+coverage/
+playwright-report/
+test-results/
+
+# Prisma
+packages/db/src/generated/
+
+# Expo / React Native
+apps/mobile/.expo/
+apps/mobile/android/
+apps/mobile/ios/
+*.keystore
+*.jks
+
+# OpenAPI (auto-generated, committed manually after review)
+# apps/api/openapi.json  ← committed intentionally, do NOT ignore
+
+# Secrets
+*.pem
+*.key
+infra/keycloak/realm-export-with-secrets.json

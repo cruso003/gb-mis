@@ -1,0 +1,36 @@
+{
+  "name": "@gb-mis/db",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "generate": "prisma generate",
+    "migrate": "prisma migrate deploy",
+    "migrate:dev": "prisma migrate dev",
+    "reset": "prisma migrate reset",
+    "seed": "tsx seed/index.ts",
+    "studio": "prisma studio",
+    "lint": "eslint src seed --ext .ts",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@gb-mis/types": "workspace:*",
+    "@prisma/client": "^5.22.0"
+  },
+  "devDependencies": {
+    "@gb-mis/eslint-config": "workspace:*",
+    "prisma": "^5.22.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.4.0"
+  }
+}

@@ -1,0 +1,120 @@
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: gb-mis-postgres
+    environment:
+      POSTGRES_USER: gbmis
+      POSTGRES_PASSWORD: gbmis_dev_pass
+      POSTGRES_DB: gbmis
+      POSTGRES_MULTIPLE_DATABASES: gbmis,keycloak
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./infra/docker/postgres-init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U gbmis -d gbmis']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: gb-mis-redis
+    command: redis-server --appendonly yes
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:25.0
+    container_name: gb-mis-keycloak
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: keycloak_dev_pass
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: gbmis
+      KC_DB_PASSWORD: gbmis_dev_pass
+      KC_HOSTNAME_STRICT: 'false'
+      KC_HTTP_ENABLED: 'true'
+      KC_LOG_LEVEL: INFO
+    command: ['start-dev', '--import-realm']
+    ports:
+      - '8080:8080'
+    volumes:
+      - ./infra/keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'curl -sf http://localhost:8080/health/ready || exit 1',
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 90s
+    restart: unless-stopped
+
+  minio:
+    image: minio/minio:RELEASE.2024-11-07T00-52-20Z
+    container_name: gb-mis-minio
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minio_dev_pass
+    command: server /data --console-address ':9001'
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:9000/minio/health/live']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # MinIO bucket creation (runs once then exits)
+  minio-init:
+    image: minio/mc:latest
+    container_name: gb-mis-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+        mc alias set local http://minio:9000 minioadmin minio_dev_pass;
+        mc mb --ignore-existing local/gb-mis-attachments;
+        mc mb --ignore-existing local/gb-mis-exports;
+        mc mb --ignore-existing local/gb-mis-backups;
+        mc anonymous set none local/gb-mis-attachments;
+        mc anonymous set none local/gb-mis-exports;
+        mc anonymous set none local/gb-mis-backups;
+        echo 'MinIO buckets initialised';
+      "
+    restart: 'no'
+
+  maildev:
+    image: maildev/maildev:latest
+    container_name: gb-mis-maildev
+    ports:
+      - '1025:1025'
+      - '1080:1080'
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+  redis-data:
+  minio-data:
