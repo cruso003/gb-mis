@@ -26,7 +26,7 @@ export class BeneficiariesController {
   constructor(private readonly beneficiariesService: BeneficiariesService) {}
 
   @Get()
-  @RequirePermission('beneficiaries:read')
+  @RequirePermission('BENEFICIARY_LIST')
   @AuditEvent('READ', 'Beneficiary')
   @ApiOperation({ summary: 'List beneficiaries (county-scoped, no PII returned)' })
   findAll(
@@ -38,12 +38,12 @@ export class BeneficiariesController {
     return this.beneficiariesService.findAll(actor, {
       page: Number(page),
       limit: Number(limit),
-      search,
+      ...(search !== undefined && { search }),
     });
   }
 
   @Get(':id')
-  @RequirePermission('beneficiaries:read')
+  @RequirePermission('BENEFICIARY_READ')
   @AuditEvent('READ', 'Beneficiary')
   @ApiOperation({ summary: 'Get beneficiary detail (audited — PII returned encrypted)' })
   findOne(
@@ -54,7 +54,7 @@ export class BeneficiariesController {
   }
 
   @Post()
-  @RequirePermission('beneficiaries:create')
+  @RequirePermission('BENEFICIARY_CREATE')
   @AuditEvent('CREATE', 'Beneficiary')
   @ApiOperation({ summary: 'Register a new beneficiary with consent' })
   create(
@@ -65,7 +65,7 @@ export class BeneficiariesController {
   }
 
   @Post(':id/withdraw')
-  @RequirePermission('beneficiaries:withdraw-consent')
+  @RequirePermission('BENEFICIARY_WITHDRAW')
   @AuditEvent('UPDATE', 'Beneficiary')
   @ApiOperation({ summary: 'Record consent withdrawal and exit beneficiary from programme' })
   withdraw(

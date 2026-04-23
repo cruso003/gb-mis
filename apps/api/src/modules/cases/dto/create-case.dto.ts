@@ -5,7 +5,7 @@ export const CreateCaseSchema = z.object({
   beneficiaryId: z.string().uuid(),
   orgUnitId: z.string().uuid(),
   intakeChannel: z.nativeEnum(IntakeChannel),
-  priority: z.nativeEnum(CasePriority).default('STANDARD'),
+  priority: z.nativeEnum(CasePriority).default('ROUTINE'),
   primaryViolenceType: z.nativeEnum(ViolenceType),
   incidentDate: z.string().datetime().optional(),
   // perpetratorRelationship is captured but NEVER perpetrator name — COMPLIANCE.md

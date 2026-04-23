@@ -1,7 +1,7 @@
-import NextAuth from 'next-auth';
+import NextAuth, { type NextAuthResult } from 'next-auth';
 import Keycloak from 'next-auth/providers/keycloak';
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+export const { handlers, auth, signIn, signOut }: NextAuthResult = NextAuth({
   providers: [
     Keycloak({
       clientId: process.env['KEYCLOAK_CLIENT_ID']!,
@@ -11,16 +11,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   callbacks: {
     async jwt({ token, account }) {
-      // Persist the Keycloak access_token in the JWT so we can forward it to the API
       if (account) {
-        token['accessToken'] = account.access_token;
-        token['refreshToken'] = account.refresh_token;
-        token['expiresAt'] = account.expires_at;
+        if (account.access_token !== undefined) token['accessToken'] = account.access_token;
+        if (account.refresh_token !== undefined) token['refreshToken'] = account.refresh_token;
+        if (account.expires_at !== undefined) token['expiresAt'] = account.expires_at;
       }
       return token;
     },
     async session({ session, token }) {
-      session.accessToken = token['accessToken'] as string | undefined;
+      const accessToken = token['accessToken'];
+      if (typeof accessToken === 'string') session.accessToken = accessToken;
       return session;
     },
   },

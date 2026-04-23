@@ -5,7 +5,10 @@
     "outDir": "dist",
     "rootDir": "src",
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
+    "emitDecoratorMetadata": true,
+    "moduleResolution": "Node"
   },
-  "include": ["src"]
+  "include": [
+    "src"
+  ]
 }

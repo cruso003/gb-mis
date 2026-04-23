@@ -13,7 +13,7 @@ export class SyncController {
   constructor(private readonly syncService: SyncService) {}
 
   @Get('pull')
-  @RequirePermission('sync:pull')
+  @RequirePermission('CASE_READ')
   @ApiOperation({ summary: 'Pull server-authoritative changes since cursor' })
   pull(
     @CurrentUser() actor: AuthenticatedUser,
@@ -27,7 +27,7 @@ export class SyncController {
   }
 
   @Post('push')
-  @RequirePermission('sync:push')
+  @RequirePermission('CASE_CREATE')
   @AuditEvent('CREATE', 'SyncRecord')
   @ApiOperation({ summary: 'Push offline records from mobile device (server is authoritative on conflicts)' })
   push(

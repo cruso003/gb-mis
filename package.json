@@ -2,6 +2,7 @@
   "name": "gb-mis",
   "private": true,
   "version": "0.1.0",
+  "packageManager": "pnpm@9.15.9",
   "engines": {
     "node": ">=22.0.0",
     "pnpm": ">=9.0.0"
@@ -38,5 +39,11 @@
   },
   "commitlint": {
     "extends": ["@commitlint/config-conventional"]
+  },
+  "pnpm": {
+    "overrides": {
+      "@types/react": "^19.0.0",
+      "@types/react-dom": "^19.0.0"
+    }
   }
 }

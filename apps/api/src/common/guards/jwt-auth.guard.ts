@@ -10,7 +10,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     super();
   }
 
-  canActivate(context: ExecutionContext) {
+  override canActivate(context: ExecutionContext) {
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
@@ -19,7 +19,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     return super.canActivate(context);
   }
 
-  handleRequest<T>(err: Error | null, user: T): T {
+  override handleRequest<T>(err: Error | null, user: T): T {
     if (err || !user) {
       throw err ?? new UnauthorizedException('No valid authentication token');
     }

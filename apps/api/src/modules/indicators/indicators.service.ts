@@ -34,7 +34,7 @@ export class IndicatorsService {
     }
     if (framework) {
       const codes = Array.from(INDICATOR_CATALOG.values())
-        .filter((i) => i.frameworks.includes(framework))
+        .filter((i) => i.framework === framework)
         .map((i) => i.code);
       where['indicatorCode'] = { in: codes };
     }
@@ -115,9 +115,9 @@ export class IndicatorsService {
   ) {
     const meta = INDICATOR_CATALOG.get(indicatorCode);
     if (!meta) throw new NotFoundException(`Indicator ${indicatorCode} not in catalog`);
-    if (!meta.formulaName) throw new BadRequestException(`Indicator ${indicatorCode} has no formula (manual entry only)`);
+    if (!meta.formula) throw new BadRequestException(`Indicator ${indicatorCode} has no formula (manual entry only)`);
 
-    const value = computeIndicator(meta.formulaName, inputs);
+    const value = computeIndicator(meta.formula, inputs);
     if (value === null) throw new BadRequestException('Insufficient inputs to compute indicator');
 
     return this.recordValue({

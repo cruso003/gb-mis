@@ -28,18 +28,22 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  @RequirePermission('users:read')
+  @RequirePermission('USER_AUDIT_VIEW')
   @ApiOperation({ summary: 'List all users with pagination' })
   findAll(
     @Query('page') page = 1,
     @Query('limit') limit = 20,
     @Query('search') search?: string,
   ) {
-    return this.usersService.findAll({ page: Number(page), limit: Number(limit), search });
+    return this.usersService.findAll({
+      page: Number(page),
+      limit: Number(limit),
+      ...(search !== undefined && { search }),
+    });
   }
 
   @Get(':id')
-  @RequirePermission('users:read')
+  @RequirePermission('USER_AUDIT_VIEW')
   @AuditEvent('READ', 'User')
   @ApiOperation({ summary: 'Get a single user by ID' })
   findOne(@Param('id', ParseUUIDPipe) id: string) {
@@ -47,7 +51,7 @@ export class UsersController {
   }
 
   @Post()
-  @RequirePermission('users:create')
+  @RequirePermission('USER_CREATE')
   @AuditEvent('CREATE', 'User')
   @UsePipes(new ZodValidationPipe(CreateUserSchema))
   @ApiOperation({ summary: 'Create a new user account (provisioned by admin after Keycloak invite)' })
@@ -56,7 +60,7 @@ export class UsersController {
   }
 
   @Patch(':id')
-  @RequirePermission('users:update')
+  @RequirePermission('USER_FORCE_RESET')
   @AuditEvent('UPDATE', 'User')
   @ApiOperation({ summary: 'Update user profile or status' })
   update(
@@ -67,7 +71,7 @@ export class UsersController {
   }
 
   @Post(':id/roles/:role')
-  @RequirePermission('users:assign-role')
+  @RequirePermission('USER_GRANT_BASIC')
   @AuditEvent('UPDATE', 'UserRole')
   @ApiOperation({ summary: 'Assign a role to a user' })
   assignRole(
@@ -79,7 +83,7 @@ export class UsersController {
   }
 
   @Delete(':id/roles/:role')
-  @RequirePermission('users:assign-role')
+  @RequirePermission('USER_GRANT_BASIC')
   @AuditEvent('UPDATE', 'UserRole')
   @ApiOperation({ summary: 'Revoke a role from a user' })
   revokeRole(
@@ -90,7 +94,7 @@ export class UsersController {
   }
 
   @Delete(':id')
-  @RequirePermission('users:deactivate')
+  @RequirePermission('USER_SUSPEND')
   @AuditEvent('UPDATE', 'User')
   @ApiOperation({ summary: 'Deactivate a user account (soft delete)' })
   deactivate(@Param('id', ParseUUIDPipe) id: string) {

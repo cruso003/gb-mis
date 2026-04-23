@@ -11,7 +11,7 @@ export class AuditController {
   constructor(private readonly auditService: AuditService) {}
 
   @Get()
-  @RequirePermission('audit:read')
+  @RequirePermission('AUDIT_VIEW_ALL')
   @ApiOperation({ summary: 'Query the append-only audit log (SUPER_ADMIN / compliance roles)' })
   findAll(
     @Query('actorId') actorId?: string,
@@ -23,13 +23,13 @@ export class AuditController {
     @Query('limit') limit = 50,
   ) {
     return this.auditService.findAll({
-      actorId,
-      resource,
-      action,
-      from,
-      to,
       page: Number(page),
       limit: Number(limit),
+      ...(actorId !== undefined && { actorId }),
+      ...(resource !== undefined && { resource }),
+      ...(action !== undefined && { action }),
+      ...(from !== undefined && { from }),
+      ...(to !== undefined && { to }),
     });
   }
 }

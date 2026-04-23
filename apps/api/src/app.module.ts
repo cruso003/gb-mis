@@ -24,24 +24,25 @@ import { UsersModule } from './modules/users/users.module';
     // Structured JSON logging — one line per request
     LoggerModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        pinoHttp: {
-          level: config.get('LOG_LEVEL', 'info'),
-          transport:
-            config.get('NODE_ENV') !== 'production'
-              ? { target: 'pino-pretty', options: { colorize: true } }
-              : undefined,
-          redact: [
-            // Never log these fields — survivor safety
-            'req.headers.authorization',
-            'req.body.nationalId',
-            'req.body.fullName',
-            'req.body.phoneNumber',
-            'res.body.nationalId',
-            'res.body.fullName',
-          ],
-        },
-      }),
+      useFactory: (config: ConfigService) => {
+        const isProduction = config.get<string>('NODE_ENV') === 'production';
+        return {
+          pinoHttp: {
+            level: config.get<string>('LOG_LEVEL', 'info'),
+            ...(isProduction
+              ? {}
+              : { transport: { target: 'pino-pretty', options: { colorize: true } } }),
+            redact: [
+              'req.headers.authorization',
+              'req.body.nationalId',
+              'req.body.fullName',
+              'req.body.phoneNumber',
+              'res.body.nationalId',
+              'res.body.fullName',
+            ],
+          },
+        };
+      },
     }),
 
     // Health checks

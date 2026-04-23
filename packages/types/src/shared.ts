@@ -8,19 +8,20 @@ export type IndicatorId = Brand<string, 'IndicatorId'>;
 export type AuditEventId = Brand<string, 'AuditEventId'>;
 
 export interface Paginated<T> {
-  data: T[];
-  meta: {
-    total: number;
-    nextCursor: string | null;
-    prevCursor: string | null;
-  };
+  items: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
 }
 
 export interface ApiError {
   statusCode: number;
   error: string;
   message: string;
-  requestId: string;
+  path?: string;
+  timestamp?: string;
+  details?: unknown;
 }
 
 export interface ApiResponse<T> {

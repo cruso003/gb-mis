@@ -1,7 +1,8 @@
 import { auth } from './auth';
 import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import type { NextRequest, NextMiddleware } from 'next/server';
 
+// next-auth's auth() returns a middleware-compatible function; cast to public type for isolatedModules.
 export default auth((req: NextRequest & { auth: unknown }) => {
   const isLoggedIn = !!req.auth;
   const isAuthPage = req.nextUrl.pathname.startsWith('/login');
@@ -22,7 +23,7 @@ export default auth((req: NextRequest & { auth: unknown }) => {
   }
 
   return NextResponse.next();
-});
+}) as unknown as NextMiddleware;
 
 export const config = {
   matcher: ['/((?!_next/static|_next/image|favicon.ico|public/).*)'],

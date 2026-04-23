@@ -523,6 +523,7 @@ model CommunitySession {
 }
 
 model SessionAttendance {
+  id            String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   sessionId     String           @db.Uuid
   beneficiaryId String?          @db.Uuid
   sexAgeBracket String?
@@ -531,7 +532,7 @@ model SessionAttendance {
   session       CommunitySession @relation(fields: [sessionId], references: [id])
   beneficiary   Beneficiary?     @relation(fields: [beneficiaryId], references: [id])
 
-  @@id([sessionId, attendedAt, beneficiaryId])
+  @@unique([sessionId, attendedAt, beneficiaryId])
   @@map("session_attendances")
 }
 

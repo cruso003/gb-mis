@@ -40,6 +40,8 @@
     "pino-http": "^10.0.0",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.0",
+    "fastify": "^4.28.0",
+    "jwks-rsa": "^3.1.0",
     "zod": "^3.23.0"
   },
   "devDependencies": {

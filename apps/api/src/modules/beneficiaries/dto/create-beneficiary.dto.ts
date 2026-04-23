@@ -16,7 +16,7 @@ export const CreateBeneficiarySchema = z.object({
   // Programme
   orgUnitId: z.string().uuid(),
   enrollmentSource: z.nativeEnum(EnrollmentSource),
-  consentScope: z.nativeEnum(ConsentScope).default('PROGRAMME'),
+  consentScope: z.nativeEnum(ConsentScope).default('DATA_COLLECTION'),
 
   // Consent record — required at intake (COMPLIANCE.md §3)
   consentGivenAt: z.string().datetime(),

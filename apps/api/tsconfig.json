@@ -8,5 +8,8 @@
     "emitDecoratorMetadata": true,
     "moduleResolution": "Node"
   },
-  "include": ["src", "scripts"]
+  "include": [
+    "src",
+    "scripts"
+  ]
 }

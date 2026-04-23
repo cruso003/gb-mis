@@ -25,7 +25,7 @@ export class CasesController {
   constructor(private readonly casesService: CasesService) {}
 
   @Get()
-  @RequirePermission('cases:read')
+  @RequirePermission('CASE_LIST')
   @AuditEvent('READ', 'GbvCase')
   @ApiOperation({ summary: 'List GBV cases (county-scoped per user)' })
   findAll(
@@ -38,13 +38,13 @@ export class CasesController {
     return this.casesService.findAll(actor, {
       page: Number(page),
       limit: Number(limit),
-      status,
-      priority,
+      ...(status !== undefined && { status }),
+      ...(priority !== undefined && { priority }),
     });
   }
 
   @Get(':id')
-  @RequirePermission('cases:read')
+  @RequirePermission('CASE_READ')
   @AuditEvent('READ', 'GbvCase')
   @ApiOperation({ summary: 'Get full case detail (audited)' })
   findOne(
@@ -55,7 +55,7 @@ export class CasesController {
   }
 
   @Post()
-  @RequirePermission('cases:create')
+  @RequirePermission('CASE_CREATE')
   @AuditEvent('CREATE', 'GbvCase')
   @ApiOperation({ summary: 'Open a new GBV case' })
   create(
@@ -66,7 +66,7 @@ export class CasesController {
   }
 
   @Post(':id/services')
-  @RequirePermission('cases:add-service')
+  @RequirePermission('CASE_UPDATE')
   @AuditEvent('CREATE', 'CaseService')
   @ApiOperation({ summary: 'Record a service delivered on this case' })
   addService(
@@ -78,7 +78,7 @@ export class CasesController {
   }
 
   @Post(':id/referrals')
-  @RequirePermission('cases:create-referral')
+  @RequirePermission('CASE_UPDATE')
   @AuditEvent('CREATE', 'CaseReferral')
   @ApiOperation({ summary: 'Create a referral for this case' })
   createReferral(
@@ -90,7 +90,7 @@ export class CasesController {
   }
 
   @Post(':id/review')
-  @RequirePermission('cases:review')
+  @RequirePermission('CASE_SUPERVISOR_REVIEW')
   @AuditEvent('UPDATE', 'GbvCase')
   @ApiOperation({ summary: 'Supervisor approve or return a case' })
   review(
@@ -102,7 +102,7 @@ export class CasesController {
   }
 
   @Post(':id/close')
-  @RequirePermission('cases:close')
+  @RequirePermission('CASE_CLOSE')
   @AuditEvent('UPDATE', 'GbvCase')
   @ApiOperation({ summary: 'Close a case with reason' })
   close(

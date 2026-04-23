@@ -15,7 +15,7 @@ async function apiFetch<T>(
     ...rest,
     headers: {
       'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(token !== undefined ? { Authorization: `Bearer ${token}` } : {}),
       ...(rest.headers ?? {}),
     },
   });
@@ -39,10 +39,12 @@ export class ApiError extends Error {
 }
 
 export const apiClient = {
-  get: <T>(path: string, token?: string) => apiFetch<T>(path, { method: 'GET', token }),
+  get: <T>(path: string, token?: string) =>
+    apiFetch<T>(path, { method: 'GET', ...(token !== undefined && { token }) }),
   post: <T>(path: string, body: unknown, token?: string) =>
-    apiFetch<T>(path, { method: 'POST', body: JSON.stringify(body), token }),
+    apiFetch<T>(path, { method: 'POST', body: JSON.stringify(body), ...(token !== undefined && { token }) }),
   patch: <T>(path: string, body: unknown, token?: string) =>
-    apiFetch<T>(path, { method: 'PATCH', body: JSON.stringify(body), token }),
-  delete: <T>(path: string, token?: string) => apiFetch<T>(path, { method: 'DELETE', token }),
+    apiFetch<T>(path, { method: 'PATCH', body: JSON.stringify(body), ...(token !== undefined && { token }) }),
+  delete: <T>(path: string, token?: string) =>
+    apiFetch<T>(path, { method: 'DELETE', ...(token !== undefined && { token }) }),
 };

@@ -4,7 +4,10 @@
     "module": "CommonJS",
     "jsx": "react-jsx",
     "outDir": "dist",
-    "rootDir": "src"
+    "rootDir": "src",
+    "moduleResolution": "Node"
   },
-  "include": ["src"]
+  "include": [
+    "src"
+  ]
 }

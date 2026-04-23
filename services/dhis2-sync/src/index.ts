@@ -1,4 +1,4 @@
-import { Worker, Queue, QueueScheduler } from 'bullmq';
+import { Worker, Queue } from 'bullmq';
 import IORedis from 'ioredis';
 import { pushIndicators } from './jobs/push-indicators';
 import { pullOrgUnits } from './jobs/pull-orgunits';
@@ -9,7 +9,6 @@ const QUEUE_NAME = 'dhis2-sync';
 const connection = new IORedis(REDIS_URL, { maxRetriesPerRequest: null });
 
 const queue = new Queue(QUEUE_NAME, { connection });
-new QueueScheduler(QUEUE_NAME, { connection });
 
 const worker = new Worker(
   QUEUE_NAME,

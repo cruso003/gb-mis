@@ -12,7 +12,7 @@ export class ReportsController {
   constructor(private readonly reportsService: ReportsService) {}
 
   @Get('cases/summary')
-  @RequirePermission('reports:view')
+  @RequirePermission('CASE_EXPORT_AGGREGATE')
   @ApiOperation({ summary: 'Aggregated GBV case statistics (k-anonymity applied)' })
   casesSummary(
     @CurrentUser() actor: AuthenticatedUser,
@@ -20,21 +20,27 @@ export class ReportsController {
     @Query('periodFrom') periodFrom?: string,
     @Query('periodTo') periodTo?: string,
   ) {
-    return this.reportsService.casesSummary(actor, { countyCode, periodFrom, periodTo });
+    return this.reportsService.casesSummary(actor, {
+      ...(countyCode !== undefined && { countyCode }),
+      ...(periodFrom !== undefined && { periodFrom }),
+      ...(periodTo !== undefined && { periodTo }),
+    });
   }
 
   @Get('beneficiaries/summary')
-  @RequirePermission('reports:view')
+  @RequirePermission('BENEFICIARY_EXPORT')
   @ApiOperation({ summary: 'Aggregated beneficiary statistics (k-anonymity applied)' })
   beneficiarySummary(
     @CurrentUser() actor: AuthenticatedUser,
     @Query('countyCode') countyCode?: string,
   ) {
-    return this.reportsService.beneficiarySummary(actor, { countyCode });
+    return this.reportsService.beneficiarySummary(actor, {
+      ...(countyCode !== undefined && { countyCode }),
+    });
   }
 
   @Post('exports')
-  @RequirePermission('reports:export')
+  @RequirePermission('INDICATOR_EXPORT')
   @ApiOperation({ summary: 'Request an async data export (returns job ID for polling)' })
   requestExport(
     @Body() body: { type: 'indicators_csv' | 'cases_aggregate' | 'beneficiaries_aggregate' },

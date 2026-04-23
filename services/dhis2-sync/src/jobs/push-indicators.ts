@@ -1,7 +1,9 @@
-import { Job } from 'bullmq';
-import { prisma } from '@gb-mis/db';
+import type { Job } from 'bullmq';
+import { prisma, type Prisma } from '@gb-mis/db';
 import { getDhis2SyncableIndicators, getDhis2Mapping } from '@gb-mis/indicators';
 import { dhis2Client } from '../dhis2-client';
+
+type IndicatorValueRow = Prisma.IndicatorValueGetPayload<Record<string, never>>;
 
 export interface PushIndicatorsJobData {
   period: string;
@@ -29,20 +31,22 @@ export async function pushIndicators(job: Job<PushIndicatorsJobData>): Promise<v
     return;
   }
 
-  const dataValues = values
-    .map((v) => {
+  type DataValue = { dataElement: string; period: string; orgUnit: string; value: string; comment: string };
+
+  const dataValues = (values as IndicatorValueRow[])
+    .map((v): DataValue | null => {
       const mapping = getDhis2Mapping(v.indicatorCode);
       if (!mapping) return null;
 
       return {
         dataElement: mapping.dhis2DataElementId,
         period: v.period.replace('-', ''),
-        orgUnit: mapping.dhis2OrgUnitMap[v.countyCode ?? 'NATIONAL'] ?? mapping.dhis2OrgUnitMap['NATIONAL'] ?? '',
+        orgUnit: mapping.dhis2OrgUnitId ?? '',
         value: String(v.value),
         comment: `GB MIS export — quality: ${v.qualityFlag}`,
       };
     })
-    .filter((v): v is NonNullable<typeof v> => v !== null && v.orgUnit !== '');
+    .filter((item): item is DataValue => item !== null && item.orgUnit !== '');
 
   if (dataValues.length === 0) {
     return;

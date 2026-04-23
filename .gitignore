@@ -49,6 +49,9 @@ apps/mobile/ios/
 # OpenAPI (auto-generated, committed manually after review)
 # apps/api/openapi.json  ← committed intentionally, do NOT ignore
 
+# TypeScript incremental build info
+*.tsbuildinfo
+
 # Secrets
 *.pem
 *.key

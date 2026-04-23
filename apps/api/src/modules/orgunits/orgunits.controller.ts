@@ -11,24 +11,27 @@ export class OrgUnitsController {
   constructor(private readonly orgUnitsService: OrgUnitsService) {}
 
   @Get()
-  @RequirePermission('orgunits:read')
+  @RequirePermission('DASHBOARD_VIEW')
   @ApiOperation({ summary: 'List org units with optional level/parent filter' })
   findAll(
     @Query('level') level?: OrgUnitLevel,
     @Query('parentId') parentId?: string,
   ) {
-    return this.orgUnitsService.findAll({ level, parentId });
+    return this.orgUnitsService.findAll({
+      ...(level !== undefined && { level }),
+      ...(parentId !== undefined && { parentId }),
+    });
   }
 
   @Get('tree')
-  @RequirePermission('orgunits:read')
+  @RequirePermission('DASHBOARD_VIEW')
   @ApiOperation({ summary: 'Full org unit hierarchy tree' })
   tree() {
     return this.orgUnitsService.tree();
   }
 
   @Get(':id')
-  @RequirePermission('orgunits:read')
+  @RequirePermission('DASHBOARD_VIEW')
   @ApiOperation({ summary: 'Get a single org unit' })
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.orgUnitsService.findOne(id);

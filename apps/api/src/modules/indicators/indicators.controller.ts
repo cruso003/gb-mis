@@ -14,14 +14,14 @@ export class IndicatorsController {
   constructor(private readonly indicatorsService: IndicatorsService) {}
 
   @Get('catalog')
-  @RequirePermission('indicators:read')
+  @RequirePermission('INDICATOR_CATALOG_VIEW')
   @ApiOperation({ summary: 'Return the full indicator catalog metadata' })
   catalog() {
     return this.indicatorsService.catalog();
   }
 
   @Get('values')
-  @RequirePermission('indicators:read')
+  @RequirePermission('INDICATOR_VALUE_VIEW_VERIFIED')
   @ApiOperation({ summary: 'Query indicator values with filters' })
   findValues(
     @Query('indicatorCode') indicatorCode?: string,
@@ -33,18 +33,18 @@ export class IndicatorsController {
     @Query('limit') limit = 50,
   ) {
     return this.indicatorsService.findValues({
-      indicatorCode,
-      countyCode,
-      framework,
-      periodFrom,
-      periodTo,
       page: Number(page),
       limit: Number(limit),
+      ...(indicatorCode !== undefined && { indicatorCode }),
+      ...(countyCode !== undefined && { countyCode }),
+      ...(framework !== undefined && { framework }),
+      ...(periodFrom !== undefined && { periodFrom }),
+      ...(periodTo !== undefined && { periodTo }),
     });
   }
 
   @Post('values')
-  @RequirePermission('indicators:enter-data')
+  @RequirePermission('INDICATOR_VALUE_ENTER')
   @AuditEvent('CREATE', 'IndicatorValue')
   @ApiOperation({ summary: 'Manually record an indicator value' })
   recordValue(
@@ -65,7 +65,7 @@ export class IndicatorsController {
   }
 
   @Post(':code/compute')
-  @RequirePermission('indicators:enter-data')
+  @RequirePermission('INDICATOR_RECOMPUTE')
   @AuditEvent('CREATE', 'IndicatorValue')
   @ApiOperation({ summary: 'Compute an indicator from raw inputs and persist the result' })
   compute(
@@ -83,14 +83,14 @@ export class IndicatorsController {
   }
 
   @Get(':code/targets')
-  @RequirePermission('indicators:read')
+  @RequirePermission('INDICATOR_VALUE_VIEW_VERIFIED')
   @ApiOperation({ summary: 'Get targets for an indicator' })
   getTargets(@Param('code') code: string) {
     return this.indicatorsService.getTargets(code);
   }
 
   @Post(':code/targets')
-  @RequirePermission('indicators:set-targets')
+  @RequirePermission('INDICATOR_TARGET_EDIT')
   @AuditEvent('CREATE', 'IndicatorTarget')
   @ApiOperation({ summary: 'Set or update an indicator target' })
   setTarget(
