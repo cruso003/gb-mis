@@ -1,6 +1,7 @@
+import type { Paginated } from '@gb-mis/types';
+
 import { auth } from '../../../../../auth';
 import { apiClient } from '../../../../../lib/api-client';
-import type { Paginated } from '@gb-mis/types';
 
 interface AuditRow {
   id: string;

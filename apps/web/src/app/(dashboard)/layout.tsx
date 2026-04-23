@@ -1,5 +1,6 @@
-import { auth } from '../../auth';
 import { redirect } from 'next/navigation';
+
+import { auth } from '../../auth';
 import { Sidebar } from '../../components/Sidebar';
 import { TopBar } from '../../components/TopBar';
 

@@ -1,5 +1,6 @@
-import type { Job } from 'bullmq';
 import { prisma } from '@gb-mis/db';
+import type { Job } from 'bullmq';
+
 import { dhis2Client } from '../dhis2-client';
 
 export interface PullOrgUnitsJobData {

@@ -1,8 +1,9 @@
+import { ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+
 import { auth } from '../../../../../auth';
 import { apiClient } from '../../../../../lib/api-client';
-import { notFound } from 'next/navigation';
-import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
 
 export const metadata = { title: 'Case Detail — GB MIS' };
 

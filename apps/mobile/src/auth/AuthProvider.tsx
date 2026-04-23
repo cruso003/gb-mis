@@ -1,6 +1,6 @@
-import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import * as AuthSession from 'expo-auth-session';
 import * as SecureStore from 'expo-secure-store';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
 const KEYCLOAK_URL = process.env['EXPO_PUBLIC_KEYCLOAK_URL'] ?? 'http://localhost:8080';
 const REALM = process.env['EXPO_PUBLIC_KEYCLOAK_REALM'] ?? 'gb-mis';

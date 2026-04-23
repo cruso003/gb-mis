@@ -1,6 +1,7 @@
-import type { Job } from 'bullmq';
 import { prisma, type Prisma } from '@gb-mis/db';
 import { getDhis2SyncableIndicators, getDhis2Mapping } from '@gb-mis/indicators';
+import type { Job } from 'bullmq';
+
 import { dhis2Client } from '../dhis2-client';
 
 type IndicatorValueRow = Prisma.IndicatorValueGetPayload<Record<string, never>>;

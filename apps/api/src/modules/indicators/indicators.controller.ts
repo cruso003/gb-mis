@@ -1,11 +1,12 @@
+import type { IndicatorFramework } from '@gb-mis/types';
 import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import type { IndicatorFramework } from '@gb-mis/types';
 
-import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import type { AuthenticatedUser } from '../../common/types/authenticated-user';
+import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 import { AuditEvent } from '../../common/interceptors/audit.interceptor';
+import type { AuthenticatedUser } from '../../common/types/authenticated-user';
+
 import { IndicatorsService } from './indicators.service';
 
 @ApiTags('indicators')

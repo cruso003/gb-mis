@@ -1,5 +1,6 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 import { QuickExitButton } from '../components/QuickExitButton';
 import { useSyncStatus } from '../sync/useSyncStatus';
 

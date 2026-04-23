@@ -1,9 +1,10 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
-import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 import type { AuthenticatedUser } from '../../common/types/authenticated-user';
+
 import { ReportsService } from './reports.service';
 
 @ApiTags('reports')

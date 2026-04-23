@@ -1,7 +1,8 @@
 import { Worker, Queue } from 'bullmq';
 import IORedis from 'ioredis';
-import { pushIndicators } from './jobs/push-indicators';
+
 import { pullOrgUnits } from './jobs/pull-orgunits';
+import { pushIndicators } from './jobs/push-indicators';
 
 const REDIS_URL = process.env['REDIS_URL'] ?? 'redis://localhost:6379';
 const QUEUE_NAME = 'dhis2-sync';

@@ -9,11 +9,12 @@ import {
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
-import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import type { AuthenticatedUser } from '../../common/types/authenticated-user';
-import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
+import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 import { AuditEvent } from '../../common/interceptors/audit.interceptor';
+import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
+import type { AuthenticatedUser } from '../../common/types/authenticated-user';
+
 import { BeneficiariesService } from './beneficiaries.service';
 import {
   CreateBeneficiarySchema,

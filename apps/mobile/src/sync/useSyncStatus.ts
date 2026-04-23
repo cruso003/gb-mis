@@ -15,7 +15,7 @@ interface SyncStatus {
 
 // Stage 3: replace with WatermelonDB reactive queries
 export function useSyncStatus(): SyncStatus {
-  const [status, setStatus] = useState<SyncStatus>({
+  const [status] = useState<SyncStatus>({
     pendingCount: 0,
     failedCount: 0,
     lastSyncAt: null,

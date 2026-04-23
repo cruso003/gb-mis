@@ -1,14 +1,16 @@
-import {
-  CallHandler,
-  ExecutionContext,
-  Injectable,
-  NestInterceptor,
-} from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import type { FastifyRequest } from 'fastify';
-import { Observable, tap } from 'rxjs';
 import { prisma } from '@gb-mis/db';
 import type { AuditAction } from '@gb-mis/types';
+import type {
+  CallHandler,
+  ExecutionContext,
+  NestInterceptor} from '@nestjs/common';
+import {
+  Injectable
+} from '@nestjs/common';
+import type { Reflector } from '@nestjs/core';
+import type { FastifyRequest } from 'fastify';
+import type { Observable} from 'rxjs';
+import { tap } from 'rxjs';
 
 import type { AuthenticatedUser } from '../types/authenticated-user';
 

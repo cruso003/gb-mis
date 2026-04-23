@@ -1,7 +1,8 @@
-import { auth } from '../../../../auth';
-import { apiClient } from '../../../../lib/api-client';
-import { CasesTable } from '../../../../components/cases/CasesTable';
 import type { Paginated } from '@gb-mis/types';
+
+import { auth } from '../../../../auth';
+import { CasesTable } from '../../../../components/cases/CasesTable';
+import { apiClient } from '../../../../lib/api-client';
 
 interface CaseRow {
   id: string;

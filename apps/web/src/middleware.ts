@@ -1,6 +1,7 @@
-import { auth } from './auth';
 import { NextResponse } from 'next/server';
 import type { NextRequest, NextMiddleware } from 'next/server';
+
+import { auth } from './auth';
 
 // next-auth's auth() returns a middleware-compatible function; cast to public type for isolatedModules.
 export default auth((req: NextRequest & { auth: unknown }) => {

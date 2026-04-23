@@ -1,12 +1,11 @@
+import { prisma } from '@gb-mis/db';
+import type { Prisma } from '@gb-mis/db';
+import type { Role , Paginated } from '@gb-mis/types';
 import {
   ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { prisma } from '@gb-mis/db';
-import type { Prisma } from '@gb-mis/db';
-import type { Role } from '@gb-mis/types';
-import type { Paginated } from '@gb-mis/types';
 
 import type { CreateUserDto } from './dto/create-user.dto';
 import type { UpdateUserDto } from './dto/update-user.dto';

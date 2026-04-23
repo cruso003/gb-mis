@@ -1,7 +1,6 @@
 'use client';
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { clsx } from 'clsx';
 import {
   BarChart3,
   FolderOpen,
@@ -11,7 +10,8 @@ import {
   Settings,
   Shield,
 } from 'lucide-react';
-import { clsx } from 'clsx';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 const NAV_ITEMS = [
   { href: '/dashboard/indicators', label: 'Indicators', icon: BarChart3 },

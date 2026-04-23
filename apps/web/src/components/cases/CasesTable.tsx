@@ -1,7 +1,7 @@
 'use client';
 
-import Link from 'next/link';
 import { clsx } from 'clsx';
+import Link from 'next/link';
 
 interface CaseRow {
   id: string;

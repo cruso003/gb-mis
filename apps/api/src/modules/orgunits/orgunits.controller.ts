@@ -1,8 +1,9 @@
+import type { OrgUnitLevel } from '@gb-mis/types';
 import { Controller, Get, Param, ParseUUIDPipe, Query } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import type { OrgUnitLevel } from '@gb-mis/types';
 
 import { RequirePermission } from '../../common/decorators/require-permission.decorator';
+
 import { OrgUnitsService } from './orgunits.service';
 
 @ApiTags('orgunits')

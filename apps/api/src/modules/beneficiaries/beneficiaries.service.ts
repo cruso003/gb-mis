@@ -1,13 +1,14 @@
+import { prisma, encrypt, searchHash } from '@gb-mis/db';
+import type { Prisma } from '@gb-mis/db';
+import type { Paginated } from '@gb-mis/types';
 import {
   ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { prisma, encrypt, searchHash } from '@gb-mis/db';
-import type { Paginated } from '@gb-mis/types';
-import type { Prisma } from '@gb-mis/db';
 
 import type { AuthenticatedUser } from '../../common/types/authenticated-user';
+
 import type { CreateBeneficiaryDto } from './dto/create-beneficiary.dto';
 
 @Injectable()

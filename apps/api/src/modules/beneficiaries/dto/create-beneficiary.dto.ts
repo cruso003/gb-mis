@@ -1,5 +1,5 @@
-import { z } from 'zod';
 import { Sex, DisabilityStatus, EnrollmentSource, ConsentScope } from '@gb-mis/types';
+import { z } from 'zod';
 
 export const CreateBeneficiarySchema = z.object({
   // PII — will be encrypted at rest before DB write

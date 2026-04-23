@@ -1,7 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
 import { prisma } from '@gb-mis/db';
 import type { Prisma } from '@gb-mis/db';
 import type { OrgUnitLevel } from '@gb-mis/types';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
 @Injectable()
 export class OrgUnitsService {

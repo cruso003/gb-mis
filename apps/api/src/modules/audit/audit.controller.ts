@@ -1,8 +1,9 @@
+import type { AuditAction } from '@gb-mis/types';
 import { Controller, Get, Query } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import type { AuditAction } from '@gb-mis/types';
 
 import { RequirePermission } from '../../common/decorators/require-permission.decorator';
+
 import { AuditService } from './audit.service';
 
 @ApiTags('audit')

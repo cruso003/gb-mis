@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+
 import { IndicatorsController } from './indicators.controller';
 import { IndicatorsService } from './indicators.service';
 

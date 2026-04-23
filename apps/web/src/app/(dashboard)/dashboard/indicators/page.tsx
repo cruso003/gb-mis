@@ -1,7 +1,8 @@
-import { auth } from '../../../../auth';
-import { apiClient } from '../../../../lib/api-client';
-import { IndicatorsGrid } from '../../../../components/indicators/IndicatorsGrid';
 import type { Paginated } from '@gb-mis/types';
+
+import { auth } from '../../../../auth';
+import { IndicatorsGrid } from '../../../../components/indicators/IndicatorsGrid';
+import { apiClient } from '../../../../lib/api-client';
 
 interface IndicatorValueRow {
   id: string;

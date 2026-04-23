@@ -1,6 +1,8 @@
 import { createStackNavigator } from '@react-navigation/stack';
+
 import { useAuth } from '../auth/AuthProvider';
 import { LoginScreen } from '../screens/LoginScreen';
+
 import { MainTabs } from './MainTabs';
 
 export type RootStackParamList = {

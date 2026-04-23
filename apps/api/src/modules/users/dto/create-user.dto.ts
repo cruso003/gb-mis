@@ -1,5 +1,5 @@
-import { z } from 'zod';
 import { Role } from '@gb-mis/types';
+import { z } from 'zod';
 
 export const CreateUserSchema = z.object({
   keycloakSubject: z.string().uuid(),

@@ -1,11 +1,11 @@
+import { effectivePermissions } from '@gb-mis/auth';
+import { prisma } from '@gb-mis/db';
+import type { Role } from '@gb-mis/types';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
-import { can, effectivePermissions } from '@gb-mis/auth';
-import type { Role } from '@gb-mis/types';
-import { prisma } from '@gb-mis/db';
-import { ExtractJwt, Strategy } from 'passport-jwt';
 import { passportJwtSecret } from 'jwks-rsa';
+import { ExtractJwt, Strategy } from 'passport-jwt';
 
 import type { AuthenticatedUser } from '../../common/types/authenticated-user';
 

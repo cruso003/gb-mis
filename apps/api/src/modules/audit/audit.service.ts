@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
 import { prisma } from '@gb-mis/db';
 import type { AuditAction } from '@gb-mis/types';
+import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class AuditService {

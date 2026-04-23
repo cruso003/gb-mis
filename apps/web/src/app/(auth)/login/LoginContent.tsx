@@ -1,7 +1,7 @@
 'use client';
 
-import { signIn } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 
 export function LoginContent() {
   const params = useSearchParams();

@@ -9,14 +9,15 @@ import {
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
-import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import type { AuthenticatedUser } from '../../common/types/authenticated-user';
-import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
+import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 import { AuditEvent } from '../../common/interceptors/audit.interceptor';
+import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
+import type { AuthenticatedUser } from '../../common/types/authenticated-user';
+
 import { CasesService } from './cases.service';
-import { CreateCaseSchema, type CreateCaseDto } from './dto/create-case.dto';
 import { AddServiceSchema, type AddServiceDto } from './dto/add-service.dto';
+import { CreateCaseSchema, type CreateCaseDto } from './dto/create-case.dto';
 import { CreateReferralSchema, type CreateReferralDto } from './dto/create-referral.dto';
 
 @ApiTags('cases')

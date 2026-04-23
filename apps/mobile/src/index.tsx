@@ -1,12 +1,11 @@
-import 'react-native-gesture-handler';
-import { registerRootComponent } from 'expo';
 import { NavigationContainer } from '@react-navigation/native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { registerRootComponent } from 'expo';
 import { StyleSheet } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { RootNavigator } from './navigation/RootNavigator';
 import { AuthProvider } from './auth/AuthProvider';
+import { RootNavigator } from './navigation/RootNavigator';
 
 function App() {
   return (

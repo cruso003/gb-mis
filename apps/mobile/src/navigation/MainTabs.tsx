@@ -1,6 +1,7 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { DashboardScreen } from '../screens/DashboardScreen';
+
 import { CaseIntakeScreen } from '../screens/CaseIntakeScreen';
+import { DashboardScreen } from '../screens/DashboardScreen';
 import { SyncScreen } from '../screens/SyncScreen';
 
 export type MainTabParamList = {

@@ -1,15 +1,16 @@
+import { prisma } from '@gb-mis/db';
+import type { Prisma } from '@gb-mis/db';
+import type { Paginated } from '@gb-mis/types';
 import {
   ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { prisma } from '@gb-mis/db';
-import type { Prisma } from '@gb-mis/db';
-import type { Paginated } from '@gb-mis/types';
 
 import type { AuthenticatedUser } from '../../common/types/authenticated-user';
-import type { CreateCaseDto } from './dto/create-case.dto';
+
 import type { AddServiceDto } from './dto/add-service.dto';
+import type { CreateCaseDto } from './dto/create-case.dto';
 import type { CreateReferralDto } from './dto/create-referral.dto';
 
 @Injectable()

@@ -1,12 +1,13 @@
-import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
+import type { MiddlewareConsumer, NestModule} from '@nestjs/common';
+import { Module, RequestMethod } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TerminusModule } from '@nestjs/terminus';
 import { LoggerModule } from 'nestjs-pino';
 
-import { RlsMiddleware } from './modules/auth/rls.middleware';
 
 import { AuditModule } from './modules/audit/audit.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { RlsMiddleware } from './modules/auth/rls.middleware';
 import { BeneficiariesModule } from './modules/beneficiaries/beneficiaries.module';
 import { CasesModule } from './modules/cases/cases.module';
 import { HealthController } from './modules/health/health.controller';

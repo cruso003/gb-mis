@@ -1,10 +1,11 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
-import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import type { AuthenticatedUser } from '../../common/types/authenticated-user';
+import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 import { AuditEvent } from '../../common/interceptors/audit.interceptor';
+import type { AuthenticatedUser } from '../../common/types/authenticated-user';
+
 import { SyncService, type SyncPushRecord } from './sync.service';
 
 @ApiTags('sync')

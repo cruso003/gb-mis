@@ -1,5 +1,6 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
 import { prisma } from '@gb-mis/db';
+import { Injectable, BadRequestException } from '@nestjs/common';
+
 import type { AuthenticatedUser } from '../../common/types/authenticated-user';
 
 export interface SyncPushRecord {

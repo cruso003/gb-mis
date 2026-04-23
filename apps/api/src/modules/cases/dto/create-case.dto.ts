@@ -1,5 +1,5 @@
-import { z } from 'zod';
 import { CasePriority, IntakeChannel, ViolenceType } from '@gb-mis/types';
+import { z } from 'zod';
 
 export const CreateCaseSchema = z.object({
   beneficiaryId: z.string().uuid(),

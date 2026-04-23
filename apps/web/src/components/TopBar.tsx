@@ -1,8 +1,8 @@
 'use client';
 
-import { signOut } from 'next-auth/react';
 import { LogOut, User } from 'lucide-react';
 import type { Session } from 'next-auth';
+import { signOut } from 'next-auth/react';
 
 interface TopBarProps {
   user: Session['user'];

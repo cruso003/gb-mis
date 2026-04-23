@@ -1,7 +1,8 @@
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useSyncStatus } from '../sync/useSyncStatus';
+
 import { triggerSync } from '../sync/SyncEngine';
+import { useSyncStatus } from '../sync/useSyncStatus';
 
 export function SyncScreen() {
   const insets = useSafeAreaInsets();

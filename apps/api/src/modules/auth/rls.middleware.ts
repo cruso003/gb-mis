@@ -1,6 +1,7 @@
-import { Injectable, NestMiddleware } from '@nestjs/common';
-import type { FastifyReply, FastifyRequest } from 'fastify';
 import { prisma } from '@gb-mis/db';
+import type { NestMiddleware } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import type { FastifyReply, FastifyRequest } from 'fastify';
 
 import type { AuthenticatedUser } from '../../common/types/authenticated-user';
 

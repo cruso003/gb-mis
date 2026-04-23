@@ -1,3 +1,4 @@
+import type { Role } from '@gb-mis/types';
 import {
   Body,
   Controller,
@@ -11,16 +12,16 @@ import {
   UsePipes,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import type { Role } from '@gb-mis/types';
 
-import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import type { AuthenticatedUser } from '../../common/types/authenticated-user';
-import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
+import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 import { AuditEvent } from '../../common/interceptors/audit.interceptor';
-import { UsersService } from './users.service';
+import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
+import type { AuthenticatedUser } from '../../common/types/authenticated-user';
+
 import { CreateUserSchema, type CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserSchema, type UpdateUserDto } from './dto/update-user.dto';
+import { UsersService } from './users.service';
 
 @ApiTags('users')
 @Controller('users')

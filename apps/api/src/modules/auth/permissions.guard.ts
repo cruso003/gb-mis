@@ -1,7 +1,8 @@
-import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
+import type { Permission } from '@gb-mis/types';
+import type { CanActivate, ExecutionContext} from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import type { FastifyRequest } from 'fastify';
-import type { Permission } from '@gb-mis/types';
 
 import { PERMISSIONS_KEY } from '../../common/decorators/require-permission.decorator';
 import type { AuthenticatedUser } from '../../common/types/authenticated-user';

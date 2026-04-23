@@ -1,15 +1,15 @@
-import {
+import type { ApiError } from '@gb-mis/types';
+import type {
   ArgumentsHost,
+  ExceptionFilter} from '@nestjs/common';
+import {
   Catch,
-  ExceptionFilter,
   HttpException,
   HttpStatus,
   Logger,
 } from '@nestjs/common';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { ZodError } from 'zod';
-
-import type { ApiError } from '@gb-mis/types';
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {

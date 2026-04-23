@@ -1,12 +1,14 @@
-import {
+import type {
   CallHandler,
   ExecutionContext,
+  NestInterceptor} from '@nestjs/common';
+import {
   Injectable,
-  Logger,
-  NestInterceptor,
+  Logger
 } from '@nestjs/common';
 import type { FastifyRequest } from 'fastify';
-import { Observable, tap } from 'rxjs';
+import type { Observable} from 'rxjs';
+import { tap } from 'rxjs';
 
 import type { AuthenticatedUser } from '../types/authenticated-user';
 
