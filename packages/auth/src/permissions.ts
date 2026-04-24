@@ -40,6 +40,8 @@ const ADMIN_PERMISSIONS: ReadonlySet<Permission> = new Set([
   Permission.INTEGRATION_EDIT,
   Permission.INTEGRATION_TEST,
   Permission.FEATURE_FLAG_TOGGLE,
+  Permission.SECONDARY_DATA_VIEW,
+  Permission.SECONDARY_DATA_MANAGE,
   Permission.AUDIT_VIEW_ALL,
   Permission.AUDIT_EXPORT,
   Permission.DSR_PROCESS,
@@ -122,6 +124,7 @@ const ANALYST_PERMISSIONS: ReadonlySet<Permission> = new Set([
   Permission.INDICATOR_VALUE_VIEW_UNVERIFIED,
   Permission.INDICATOR_VALUE_ENTER,
   Permission.INDICATOR_EXPORT,
+  Permission.SECONDARY_DATA_VIEW,
   Permission.DASHBOARD_VIEW,
   Permission.AUDIT_VIEW_OWN_SCOPE,
 ]);

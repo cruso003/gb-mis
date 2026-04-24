@@ -10,7 +10,9 @@
   },
   "dependencies": {
     "@gb-mis/db": "workspace:*",
+    "@gb-mis/indicators": "workspace:*",
     "@gb-mis/types": "workspace:*",
+    "@aws-sdk/client-s3": "^3.600.0",
     "bullmq": "^5.23.0",
     "ioredis": "^5.3.2",
     "csv-parse": "^5.5.6"

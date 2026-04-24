@@ -11,6 +11,7 @@ import {
   Shield,
   LayoutDashboard,
   CalendarDays,
+  Database,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -21,6 +22,7 @@ const NAV_ITEMS = [
   { href: '/dashboard/cases', label: 'Cases', icon: FolderOpen },
   { href: '/dashboard/beneficiaries', label: 'Beneficiaries', icon: Users },
   { href: '/dashboard/sessions', label: 'Sessions', icon: CalendarDays },
+  { href: '/dashboard/datasets', label: 'Secondary Data', icon: Database },
   { href: '/dashboard/reports', label: 'Reports', icon: FileText },
   { href: '/dashboard/admin/users', label: 'Users', icon: Settings },
   { href: '/dashboard/admin/audit', label: 'Audit Log', icon: ScrollText },

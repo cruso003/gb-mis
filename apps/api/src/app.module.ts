@@ -7,6 +7,7 @@ import { LoggerModule } from 'nestjs-pino';
 
 import { AuditModule } from './modules/audit/audit.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { DatasetsModule } from './modules/datasets/datasets.module';
 import { RlsMiddleware } from './modules/auth/rls.middleware';
 import { BeneficiariesModule } from './modules/beneficiaries/beneficiaries.module';
 import { CasesModule } from './modules/cases/cases.module';
@@ -55,6 +56,7 @@ import { UsersModule } from './modules/users/users.module';
     AuthModule,
     UsersModule,
     OrgUnitsModule,
+    DatasetsModule,
     CasesModule,
     BeneficiariesModule,
     IndicatorsModule,
