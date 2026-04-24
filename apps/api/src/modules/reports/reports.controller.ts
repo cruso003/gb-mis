@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, ParseIntPipe, Post, Query } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -40,11 +40,50 @@ export class ReportsController {
     });
   }
 
+  @Get('monthly-county')
+  @RequirePermission('INDICATOR_EXPORT')
+  @ApiOperation({ summary: 'Monthly county report — cases, beneficiaries, sessions, indicators' })
+  monthlyCounty(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Query('orgUnitId') orgUnitId: string,
+    @Query('year', ParseIntPipe) year: number,
+    @Query('month', ParseIntPipe) month: number,
+  ) {
+    return this.reportsService.monthlyCountyReport(actor, { orgUnitId, year, month });
+  }
+
+  @Get('quarterly-lwep')
+  @RequirePermission('INDICATOR_EXPORT')
+  @ApiOperation({ summary: 'Quarterly LWEP narrative report for World Bank' })
+  quarterlyLwep(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Query('year', ParseIntPipe) year: number,
+    @Query('quarter', ParseIntPipe) quarter: number,
+  ) {
+    return this.reportsService.quarterlyLwepReport(actor, {
+      year,
+      quarter: quarter as 1 | 2 | 3 | 4,
+    });
+  }
+
+  @Get('annual-cedaw')
+  @RequirePermission('INDICATOR_EXPORT')
+  @ApiOperation({ summary: 'Annual CEDAW follow-up report — all BPfA/CEDAW indicators' })
+  annualCedaw(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Query('year', ParseIntPipe) year: number,
+  ) {
+    return this.reportsService.annualCedawReport(actor, { year });
+  }
+
   @Post('exports')
   @RequirePermission('INDICATOR_EXPORT')
-  @ApiOperation({ summary: 'Request an async data export (returns job ID for polling)' })
+  @ApiOperation({ summary: 'Request an async report export (returns job ID for polling)' })
   requestExport(
-    @Body() body: { type: 'indicators_csv' | 'cases_aggregate' | 'beneficiaries_aggregate' },
+    @Body()
+    body: {
+      type: 'indicators_csv' | 'cases_aggregate' | 'beneficiaries_aggregate' | 'monthly_county' | 'quarterly_lwep' | 'annual_cedaw';
+    },
     @CurrentUser() actor: AuthenticatedUser,
   ) {
     return this.reportsService.generateExport(body.type, actor);
