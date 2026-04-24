@@ -1,6 +1,6 @@
 import { prisma } from '@gb-mis/db';
 import { INDICATOR_CATALOG, computeIndicator } from '@gb-mis/indicators';
-import type { IndicatorFramework, Periodicity } from '@gb-mis/types';
+import type { IndicatorFramework } from '@gb-mis/types';
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 
 import type { AuthenticatedUser } from '../../common/types/authenticated-user';
@@ -15,28 +15,36 @@ export class IndicatorsService {
 
   async findValues(params: {
     indicatorCode?: string;
-    countyCode?: string;
+    orgUnitId?: string;
     framework?: IndicatorFramework;
     periodFrom?: string;
     periodTo?: string;
     page: number;
     limit: number;
   }) {
-    const { indicatorCode, countyCode, framework, periodFrom, periodTo, page, limit } = params;
+    const { indicatorCode, orgUnitId, framework, periodFrom, periodTo, page, limit } = params;
 
     const where: Record<string, unknown> = {};
-    if (indicatorCode) where['indicatorCode'] = indicatorCode;
-    if (countyCode) where['countyCode'] = countyCode;
-    if (periodFrom || periodTo) {
-      where['period'] = {};
-      if (periodFrom) (where['period'] as Record<string, unknown>)['gte'] = periodFrom;
-      if (periodTo) (where['period'] as Record<string, unknown>)['lte'] = periodTo;
+
+    if (indicatorCode) {
+      const ind = await prisma.indicator.findUnique({ where: { code: indicatorCode } });
+      if (ind) where['indicatorId'] = ind.id;
     }
+
+    if (orgUnitId) where['orgUnitId'] = orgUnitId;
+
+    if (periodFrom || periodTo) {
+      where['periodStart'] = {};
+      if (periodFrom) (where['periodStart'] as Record<string, unknown>)['gte'] = new Date(periodFrom);
+      if (periodTo) (where['periodStart'] as Record<string, unknown>)['lte'] = new Date(periodTo);
+    }
+
     if (framework) {
       const codes = Array.from(INDICATOR_CATALOG.values())
         .filter((i) => i.framework === framework)
         .map((i) => i.code);
-      where['indicatorCode'] = { in: codes };
+      const indicators = await prisma.indicator.findMany({ where: { code: { in: codes } } });
+      where['indicatorId'] = { in: indicators.map((i) => i.id) };
     }
 
     const skip = (page - 1) * limit;
@@ -45,7 +53,11 @@ export class IndicatorsService {
         where,
         skip,
         take: limit,
-        orderBy: [{ period: 'desc' }, { indicatorCode: 'asc' }],
+        include: {
+          indicator: { select: { code: true, name: true, unit: true } },
+          orgUnit: { select: { code: true, name: true } },
+        },
+        orderBy: [{ periodStart: 'desc' }],
       }),
       prisma.indicatorValue.count({ where }),
     ]);
@@ -56,52 +68,34 @@ export class IndicatorsService {
   async recordValue(
     dto: {
       indicatorCode: string;
-      countyCode: string | null;
-      period: string;
-      periodicity: Periodicity;
+      orgUnitId: string;
+      periodStart: Date;
+      periodEnd: Date;
       value: number;
-      numerator?: number;
+      source: 'MANUAL_ENTRY';
       denominator?: number;
-      disaggregation?: Record<string, string>;
     },
     actor: AuthenticatedUser,
   ) {
-    const meta = INDICATOR_CATALOG.get(dto.indicatorCode);
-    if (!meta) throw new NotFoundException(`Indicator ${dto.indicatorCode} not in catalog`);
+    const ind = await prisma.indicator.findUnique({ where: { code: dto.indicatorCode } });
+    if (!ind) throw new NotFoundException(`Indicator ${dto.indicatorCode} not in catalog`);
 
-    // k-anonymity guard for disaggregated counts
     if (dto.denominator !== undefined && dto.denominator < K_ANONYMITY_THRESHOLD) {
       throw new BadRequestException(
         `Denominator ${dto.denominator} is below the k-anonymity threshold of ${K_ANONYMITY_THRESHOLD}`,
       );
     }
 
-    return prisma.indicatorValue.upsert({
-      where: {
-        indicatorCode_period_countyCode: {
-          indicatorCode: dto.indicatorCode,
-          period: dto.period,
-          countyCode: dto.countyCode ?? 'NATIONAL',
-        },
-      },
-      create: {
-        indicatorCode: dto.indicatorCode,
-        period: dto.period,
-        periodicity: dto.periodicity,
-        countyCode: dto.countyCode ?? 'NATIONAL',
+    return prisma.indicatorValue.create({
+      data: {
+        indicatorId: ind.id,
+        orgUnitId: dto.orgUnitId,
+        periodStart: dto.periodStart,
+        periodEnd: dto.periodEnd,
         value: dto.value,
-        numerator: dto.numerator,
-        denominator: dto.denominator,
-        disaggregation: dto.disaggregation,
-        recordedById: actor.id,
-      },
-      update: {
-        value: dto.value,
-        numerator: dto.numerator,
-        denominator: dto.denominator,
-        disaggregation: dto.disaggregation,
-        recordedById: actor.id,
-        qualityFlag: 'REVISED',
+        source: dto.source,
+        qualityFlag: 'UNVERIFIED',
+        enteredById: actor.id,
       },
     });
   }
@@ -109,8 +103,9 @@ export class IndicatorsService {
   async computeAndSave(
     indicatorCode: string,
     inputs: Record<string, number>,
-    period: string,
-    countyCode: string | null,
+    orgUnitId: string,
+    periodStart: Date,
+    periodEnd: Date,
     actor: AuthenticatedUser,
   ) {
     const meta = INDICATOR_CATALOG.get(indicatorCode);
@@ -120,19 +115,15 @@ export class IndicatorsService {
     const value = computeIndicator(meta.formula, inputs);
     if (value === null) throw new BadRequestException('Insufficient inputs to compute indicator');
 
-    return this.recordValue({
-      indicatorCode,
-      countyCode,
-      period,
-      periodicity: 'ANNUAL',
-      value,
-    }, actor);
+    return this.recordValue({ indicatorCode, orgUnitId, periodStart, periodEnd, value, source: 'MANUAL_ENTRY' }, actor);
   }
 
   async getTargets(indicatorCode: string) {
+    const ind = await prisma.indicator.findUnique({ where: { code: indicatorCode } });
+    if (!ind) return [];
     return prisma.indicatorTarget.findMany({
-      where: { indicatorCode },
-      orderBy: { year: 'asc' },
+      where: { indicatorId: ind.id },
+      orderBy: { targetYear: 'asc' },
     });
   }
 
@@ -140,22 +131,22 @@ export class IndicatorsService {
     indicatorCode: string,
     year: number,
     target: number,
-    countyCode: string | null,
+    orgUnitId: string | null,
     actor: AuthenticatedUser,
   ) {
     const meta = INDICATOR_CATALOG.get(indicatorCode);
     if (!meta) throw new NotFoundException(`Indicator ${indicatorCode} not in catalog`);
 
-    return prisma.indicatorTarget.upsert({
-      where: {
-        indicatorCode_year_countyCode: {
-          indicatorCode,
-          year,
-          countyCode: countyCode ?? 'NATIONAL',
-        },
+    const ind = await prisma.indicator.findUniqueOrThrow({ where: { code: indicatorCode } });
+
+    return prisma.indicatorTarget.create({
+      data: {
+        indicatorId: ind.id,
+        targetYear: year,
+        targetValue: target,
+        source: `set by ${actor.id}`,
+        ...(orgUnitId !== null && { orgUnitId }),
       },
-      create: { indicatorCode, year, countyCode: countyCode ?? 'NATIONAL', target, setById: actor.id },
-      update: { target, setById: actor.id },
     });
   }
 }

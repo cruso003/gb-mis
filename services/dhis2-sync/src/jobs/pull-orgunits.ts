@@ -22,6 +22,7 @@ export async function pullOrgUnits(job: Job<PullOrgUnitsJobData>): Promise<void>
       create: {
         code,
         name: (ou['name'] as string) ?? code,
+        shortName: (ou['name'] as string) ?? code,
         level: 'DISTRICT',
         dhis2Id: (ou['id'] as string) ?? null,
       },

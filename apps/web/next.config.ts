@@ -2,9 +2,7 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   output: 'standalone',
-  experimental: {
-    typedRoutes: true,
-  },
+  experimental: {},
   // Proxy API requests to NestJS in development
   async rewrites() {
     return [

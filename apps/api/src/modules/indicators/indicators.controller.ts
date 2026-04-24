@@ -26,7 +26,7 @@ export class IndicatorsController {
   @ApiOperation({ summary: 'Query indicator values with filters' })
   findValues(
     @Query('indicatorCode') indicatorCode?: string,
-    @Query('countyCode') countyCode?: string,
+    @Query('orgUnitId') orgUnitId?: string,
     @Query('framework') framework?: IndicatorFramework,
     @Query('periodFrom') periodFrom?: string,
     @Query('periodTo') periodTo?: string,
@@ -37,7 +37,7 @@ export class IndicatorsController {
       page: Number(page),
       limit: Number(limit),
       ...(indicatorCode !== undefined && { indicatorCode }),
-      ...(countyCode !== undefined && { countyCode }),
+      ...(orgUnitId !== undefined && { orgUnitId }),
       ...(framework !== undefined && { framework }),
       ...(periodFrom !== undefined && { periodFrom }),
       ...(periodTo !== undefined && { periodTo }),
@@ -52,17 +52,26 @@ export class IndicatorsController {
     @Body()
     body: {
       indicatorCode: string;
-      countyCode: string | null;
-      period: string;
-      periodicity: string;
+      orgUnitId: string;
+      periodStart: string;
+      periodEnd: string;
       value: number;
-      numerator?: number;
       denominator?: number;
-      disaggregation?: Record<string, string>;
     },
     @CurrentUser() actor: AuthenticatedUser,
   ) {
-    return this.indicatorsService.recordValue(body as Parameters<IndicatorsService['recordValue']>[0], actor);
+    return this.indicatorsService.recordValue(
+      {
+        indicatorCode: body.indicatorCode,
+        orgUnitId: body.orgUnitId,
+        periodStart: new Date(body.periodStart),
+        periodEnd: new Date(body.periodEnd),
+        value: body.value,
+        source: 'MANUAL_ENTRY',
+        ...(body.denominator !== undefined && { denominator: body.denominator }),
+      },
+      actor,
+    );
   }
 
   @Post(':code/compute')
@@ -71,14 +80,15 @@ export class IndicatorsController {
   @ApiOperation({ summary: 'Compute an indicator from raw inputs and persist the result' })
   compute(
     @Param('code') code: string,
-    @Body() body: { inputs: Record<string, number>; period: string; countyCode?: string },
+    @Body() body: { inputs: Record<string, number>; orgUnitId: string; periodStart: string; periodEnd: string },
     @CurrentUser() actor: AuthenticatedUser,
   ) {
     return this.indicatorsService.computeAndSave(
       code,
       body.inputs,
-      body.period,
-      body.countyCode ?? null,
+      body.orgUnitId,
+      new Date(body.periodStart),
+      new Date(body.periodEnd),
       actor,
     );
   }
@@ -96,14 +106,14 @@ export class IndicatorsController {
   @ApiOperation({ summary: 'Set or update an indicator target' })
   setTarget(
     @Param('code') code: string,
-    @Body() body: { year: number; target: number; countyCode?: string },
+    @Body() body: { year: number; target: number; orgUnitId?: string },
     @CurrentUser() actor: AuthenticatedUser,
   ) {
     return this.indicatorsService.setTarget(
       code,
       body.year,
       body.target,
-      body.countyCode ?? null,
+      body.orgUnitId ?? null,
       actor,
     );
   }

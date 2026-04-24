@@ -1,6 +1,5 @@
 import { prisma } from '@gb-mis/db';
-import type { Prisma } from '@gb-mis/db';
-import type { Role , Paginated } from '@gb-mis/types';
+import type { Role, Paginated } from '@gb-mis/types';
 import {
   ConflictException,
   Injectable,
@@ -16,12 +15,12 @@ export class UsersService {
     page: number;
     limit: number;
     search?: string;
-  }): Promise<Paginated<Prisma.UserGetPayload<{ include: { orgUnit: true; roles: true } }>>> {
+  }): Promise<Paginated<Record<string, unknown>>> {
     const { page, limit, search } = params;
     const skip = (page - 1) * limit;
 
-    const where: Prisma.UserWhereInput = search
-      ? { displayName: { contains: search, mode: 'insensitive' } }
+    const where = search
+      ? { displayName: { contains: search, mode: 'insensitive' as const } }
       : {};
 
     const [items, total] = await Promise.all([
@@ -29,25 +28,19 @@ export class UsersService {
         where,
         skip,
         take: limit,
-        include: { orgUnit: true, roles: true },
+        include: { roles: true, orgUnitScopes: { include: { orgUnit: true } } },
         orderBy: { createdAt: 'desc' },
       }),
       prisma.user.count({ where }),
     ]);
 
-    return {
-      items,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
+    return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
   async findOne(id: string) {
     const user = await prisma.user.findUnique({
       where: { id },
-      include: { orgUnit: true, roles: true },
+      include: { roles: true, orgUnitScopes: { include: { orgUnit: true } } },
     });
     if (!user) throw new NotFoundException(`User ${id} not found`);
     return user;
@@ -63,20 +56,24 @@ export class UsersService {
       );
     }
 
-    return prisma.user.create({
+    const user = await prisma.user.create({
       data: {
         keycloakSubject: dto.keycloakSubject,
         displayName: dto.displayName,
-        orgUnitId: dto.orgUnitId,
         roles: {
           create: dto.roles.map((role) => ({
             role,
-            assignedBy: dto.assignedBy,
+            assignedById: dto.assignedBy,
           })),
         },
       },
-      include: { orgUnit: true, roles: true },
     });
+
+    await prisma.userOrgUnitScope.create({
+      data: { userId: user.id, orgUnitId: dto.orgUnitId, assignedById: dto.assignedBy },
+    });
+
+    return this.findOne(user.id);
   }
 
   async update(id: string, dto: UpdateUserDto) {
@@ -85,11 +82,10 @@ export class UsersService {
     return prisma.user.update({
       where: { id },
       data: {
-        displayName: dto.displayName,
-        orgUnitId: dto.orgUnitId,
-        status: dto.status,
+        ...(dto.displayName !== undefined && { displayName: dto.displayName }),
+        ...(dto.status !== undefined && { status: dto.status }),
       },
-      include: { orgUnit: true, roles: true },
+      include: { roles: true, orgUnitScopes: true },
     });
   }
 
@@ -98,19 +94,18 @@ export class UsersService {
 
     return prisma.userRole.upsert({
       where: { userId_role: { userId, role } },
-      create: { userId, role, assignedBy },
-      update: { assignedBy },
+      create: { userId, role, assignedById: assignedBy },
+      update: { assignedById: assignedBy },
     });
   }
 
   async revokeRole(userId: string, role: Role) {
     await this.findOne(userId);
-
     return prisma.userRole.deleteMany({ where: { userId, role } });
   }
 
   async deactivate(id: string) {
     await this.findOne(id);
-    return prisma.user.update({ where: { id }, data: { status: 'INACTIVE' } });
+    return prisma.user.update({ where: { id }, data: { status: 'DISABLED' } });
   }
 }

@@ -17,12 +17,12 @@ export class ReportsController {
   @ApiOperation({ summary: 'Aggregated GBV case statistics (k-anonymity applied)' })
   casesSummary(
     @CurrentUser() actor: AuthenticatedUser,
-    @Query('countyCode') countyCode?: string,
+    @Query('orgUnitId') orgUnitId?: string,
     @Query('periodFrom') periodFrom?: string,
     @Query('periodTo') periodTo?: string,
   ) {
     return this.reportsService.casesSummary(actor, {
-      ...(countyCode !== undefined && { countyCode }),
+      ...(orgUnitId !== undefined && { orgUnitId }),
       ...(periodFrom !== undefined && { periodFrom }),
       ...(periodTo !== undefined && { periodTo }),
     });
@@ -33,10 +33,10 @@ export class ReportsController {
   @ApiOperation({ summary: 'Aggregated beneficiary statistics (k-anonymity applied)' })
   beneficiarySummary(
     @CurrentUser() actor: AuthenticatedUser,
-    @Query('countyCode') countyCode?: string,
+    @Query('orgUnitId') orgUnitId?: string,
   ) {
     return this.reportsService.beneficiarySummary(actor, {
-      ...(countyCode !== undefined && { countyCode }),
+      ...(orgUnitId !== undefined && { orgUnitId }),
     });
   }
 

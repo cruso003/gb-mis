@@ -99,7 +99,7 @@ export class CasesController {
     @Body() body: { decision: 'APPROVED' | 'RETURNED'; notes: string },
     @CurrentUser() actor: AuthenticatedUser,
   ) {
-    return this.casesService.supervisorReview(id, body.decision, body.notes, actor);
+    return this.casesService.supervisorReview(id, body.decision, actor);
   }
 
   @Post(':id/close')

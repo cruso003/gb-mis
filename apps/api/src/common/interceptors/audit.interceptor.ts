@@ -1,3 +1,5 @@
+import { randomUUID } from 'crypto';
+
 import { prisma } from '@gb-mis/db';
 import type { AuditAction } from '@gb-mis/types';
 import type {
@@ -17,10 +19,6 @@ import type { AuthenticatedUser } from '../types/authenticated-user';
 export const AUDIT_ACTION_KEY = 'auditAction';
 export const AUDIT_RESOURCE_KEY = 'auditResource';
 
-/**
- * Decorates a handler with the audit action to emit.
- * @example @AuditEvent('CREATE', 'GbvCase')
- */
 export const AuditEvent = (action: AuditAction, resource: string): MethodDecorator =>
   (target, key, descriptor) => {
     Reflect.defineMetadata(AUDIT_ACTION_KEY, action, (descriptor as PropertyDescriptor).value as object);
@@ -50,30 +48,31 @@ export class AuditInterceptor implements NestInterceptor {
 
     const user = req.user;
     const resourceId = req.params['id'] ?? null;
+    const requestId = randomUUID();
 
     return next.handle().pipe(
       tap({
         next: async () => {
           if (!user) return;
           await this.emit({
-            actorId: user.id,
+            actorUserId: user.id,
             action,
-            resource,
-            resourceId,
-            ipAddress: req.ip,
-            userAgent: req.headers['user-agent'] ?? null,
+            entityType: resource,
+            entityId: resourceId,
+            actorIp: req.ip,
+            requestId,
             success: true,
           });
         },
         error: async () => {
           if (!user) return;
           await this.emit({
-            actorId: user.id,
+            actorUserId: user.id,
             action,
-            resource,
-            resourceId,
-            ipAddress: req.ip,
-            userAgent: req.headers['user-agent'] ?? null,
+            entityType: resource,
+            entityId: resourceId,
+            actorIp: req.ip,
+            requestId,
             success: false,
           });
         },
@@ -82,29 +81,28 @@ export class AuditInterceptor implements NestInterceptor {
   }
 
   private async emit(data: {
-    actorId: string;
+    actorUserId: string;
     action: AuditAction;
-    resource: string;
-    resourceId: string | null;
-    ipAddress: string | undefined;
-    userAgent: string | null;
+    entityType: string;
+    entityId: string | null;
+    actorIp: string | undefined;
+    requestId: string;
     success: boolean;
   }): Promise<void> {
     try {
-      await prisma.auditLog.create({
+      await prisma.auditEvent.create({
         data: {
-          actorId: data.actorId,
+          actorUserId: data.actorUserId,
           action: data.action,
-          resource: data.resource,
-          resourceId: data.resourceId,
-          ipAddress: data.ipAddress ?? null,
-          userAgent: data.userAgent,
+          entityType: data.entityType,
+          ...(data.entityId !== null && { entityId: data.entityId }),
+          actorIp: data.actorIp ?? null,
+          requestId: data.requestId,
           success: data.success,
         },
       });
     } catch {
       // Audit failures must never crash the request — log and continue.
-      // The application logger will capture this through its own error path.
     }
   }
 }

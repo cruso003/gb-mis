@@ -9,14 +9,18 @@ import {
   ScrollText,
   Settings,
   Shield,
+  LayoutDashboard,
+  CalendarDays,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const NAV_ITEMS = [
+  { href: '/dashboard', label: 'Overview', icon: LayoutDashboard, exact: true },
   { href: '/dashboard/indicators', label: 'Indicators', icon: BarChart3 },
   { href: '/dashboard/cases', label: 'Cases', icon: FolderOpen },
   { href: '/dashboard/beneficiaries', label: 'Beneficiaries', icon: Users },
+  { href: '/dashboard/sessions', label: 'Sessions', icon: CalendarDays },
   { href: '/dashboard/reports', label: 'Reports', icon: FileText },
   { href: '/dashboard/admin/users', label: 'Users', icon: Settings },
   { href: '/dashboard/admin/audit', label: 'Audit Log', icon: ScrollText },
@@ -38,8 +42,8 @@ export function Sidebar() {
       </div>
 
       <nav className="flex-1 space-y-0.5 p-3">
-        {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
-          const active = pathname?.startsWith(href) ?? false;
+        {NAV_ITEMS.map(({ href, label, icon: Icon, exact }) => {
+          const active = exact ? pathname === href : (pathname?.startsWith(href) ?? false);
           return (
             <Link
               key={href}

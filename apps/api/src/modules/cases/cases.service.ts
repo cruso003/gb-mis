@@ -1,5 +1,4 @@
 import { prisma } from '@gb-mis/db';
-import type { Prisma } from '@gb-mis/db';
 import type { Paginated } from '@gb-mis/types';
 import {
   ForbiddenException,
@@ -18,20 +17,18 @@ export class CasesService {
   async findAll(
     actor: AuthenticatedUser,
     params: { page: number; limit: number; status?: string; priority?: string },
-  ): Promise<Paginated<Prisma.GbvCaseGetPayload<{ include: { beneficiary: true; orgUnit: true } }>>> {
+  ): Promise<Paginated<Record<string, unknown>>> {
     const { page, limit, status, priority } = params;
     const skip = (page - 1) * limit;
 
-    const where: Prisma.GbvCaseWhereInput = {};
+    const where: Record<string, unknown> = {};
 
-    // ANALYST and above can see all counties; others are scoped by RLS at DB level
-    // Application layer adds explicit county filter as defence-in-depth
-    if (actor.countyIds.length > 0 && !actor.roles.includes('SUPER_ADMIN') && !actor.roles.includes('ADMIN')) {
-      where['orgUnit'] = { countyCode: { in: actor.countyIds } };
+    if (actor.orgUnitIds.length > 0 && !actor.roles.includes('SUPER_ADMIN') && !actor.roles.includes('ADMIN')) {
+      where['orgUnitId'] = { in: actor.orgUnitIds };
     }
 
-    if (status) where['status'] = status as Prisma.EnumCaseStatusFilter['equals'];
-    if (priority) where['priority'] = priority as Prisma.EnumCasePriorityFilter['equals'];
+    if (status) where['status'] = status;
+    if (priority) where['priority'] = priority;
 
     const [items, total] = await Promise.all([
       prisma.gbvCase.findMany({
@@ -39,8 +36,8 @@ export class CasesService {
         skip,
         take: limit,
         include: {
-          beneficiary: { select: { id: true, displayCode: true, orgUnitId: true } },
-          orgUnit: { select: { id: true, name: true, countyCode: true } },
+          survivor: { select: { id: true, beneficiaryCode: true, orgUnitId: true } },
+          orgUnit: { select: { id: true, name: true, code: true } },
         },
         orderBy: { createdAt: 'desc' },
       }),
@@ -54,64 +51,62 @@ export class CasesService {
     const gbvCase = await prisma.gbvCase.findUnique({
       where: { id },
       include: {
-        beneficiary: true,
+        survivor: true,
         orgUnit: true,
         incidents: true,
-        services: true,
-        referrals: { include: { toOrgUnit: true } },
-        supervisorReview: true,
+        servicesProvided: true,
+        referrals: true,
       },
     });
 
     if (!gbvCase) throw new NotFoundException(`Case ${id} not found`);
 
-    this.assertCountyAccess(actor, gbvCase.orgUnit?.countyCode);
+    this.assertOrgUnitAccess(actor, gbvCase.orgUnitId);
 
     return gbvCase;
   }
 
   async create(dto: CreateCaseDto, actor: AuthenticatedUser) {
+    const caseNumber = `CASE-${new Date().getFullYear()}-${Date.now().toString(36).toUpperCase()}`;
+    const incidentData = dto.incidentDate
+      ? {
+          create: {
+            types: dto.primaryViolenceType ? [dto.primaryViolenceType] : [],
+            occurredAt: new Date(dto.incidentDate),
+            perpetratorDemographics: {
+              ageBracket: dto.perpetratorAgeBracket ?? null,
+              sex: dto.perpetratorSex ?? null,
+              relationship: dto.perpetratorRelationship ?? null,
+            },
+          },
+        }
+      : undefined;
+
     return prisma.gbvCase.create({
       data: {
-        beneficiaryId: dto.beneficiaryId,
+        caseNumber,
+        ...(dto.beneficiaryId !== undefined && { survivorId: dto.beneficiaryId }),
         orgUnitId: dto.orgUnitId,
         intakeChannel: dto.intakeChannel,
         priority: dto.priority,
-        primaryViolenceType: dto.primaryViolenceType,
-        perpetratorDemographics: dto.perpetratorRelationship
-          ? {
-              relationship: dto.perpetratorRelationship,
-              ageBracket: dto.perpetratorAgeBracket ?? null,
-              sex: dto.perpetratorSex ?? null,
-            }
-          : undefined,
-        referredFrom: dto.referredFrom,
-        assignedToId: actor.id,
-        incidents: dto.incidentDate
-          ? {
-              create: {
-                incidentDate: new Date(dto.incidentDate),
-                violenceType: dto.primaryViolenceType,
-              },
-            }
-          : undefined,
+        intakeDate: new Date(),
+        intakeByUserId: actor.id,
+        ...(incidentData !== undefined && { incidents: incidentData }),
       },
-      include: { beneficiary: true, orgUnit: true },
+      include: { survivor: true, orgUnit: true },
     });
   }
 
   async addService(caseId: string, dto: AddServiceDto, actor: AuthenticatedUser) {
     const gbvCase = await this.findOne(caseId, actor);
 
-    return prisma.caseService.create({
+    return prisma.serviceProvided.create({
       data: {
         caseId: gbvCase.id,
-        serviceType: dto.serviceType,
+        type: dto.serviceType,
         providedAt: new Date(dto.providedAt),
-        providerOrgUnitId: dto.providerOrgUnitId,
-        outcome: dto.outcome,
-        sessionCount: dto.sessionCount,
-        recordedById: actor.id,
+        providerOrgUnitId: dto.providerOrgUnitId ?? gbvCase.orgUnitId,
+        outcome: dto.outcome ?? 'IN_PROGRESS',
       },
     });
   }
@@ -119,15 +114,14 @@ export class CasesService {
   async createReferral(caseId: string, dto: CreateReferralDto, actor: AuthenticatedUser) {
     const gbvCase = await this.findOne(caseId, actor);
 
-    return prisma.caseReferral.create({
+    return prisma.referral.create({
       data: {
         caseId: gbvCase.id,
         toOrgUnitId: dto.toOrgUnitId,
-        serviceType: dto.serviceType,
-        urgency: dto.urgency,
-        referredById: actor.id,
-        outcome: dto.outcome,
-        completedAt: dto.completedAt ? new Date(dto.completedAt) : undefined,
+        toService: dto.serviceType,
+        referredAt: new Date(),
+        ...(dto.outcome !== undefined && { outcome: dto.outcome }),
+        ...(dto.completedAt !== undefined && { completedAt: new Date(dto.completedAt) }),
       },
     });
   }
@@ -135,7 +129,6 @@ export class CasesService {
   async supervisorReview(
     caseId: string,
     decision: 'APPROVED' | 'RETURNED',
-    notes: string,
     actor: AuthenticatedUser,
   ) {
     const gbvCase = await this.findOne(caseId, actor);
@@ -146,30 +139,25 @@ export class CasesService {
     return prisma.gbvCase.update({
       where: { id: gbvCase.id },
       data: {
-        status: decision === 'APPROVED' ? 'ACTIVE' : 'PENDING_REVIEW',
-        supervisorReview: {
-          upsert: {
-            create: { supervisorId: actor.id, decision, notes },
-            update: { supervisorId: actor.id, decision, notes },
-          },
-        },
+        status: decision === 'APPROVED' ? 'IN_SERVICE' : 'OPEN',
+        supervisorReviewedAt: new Date(),
       },
     });
   }
 
   async close(caseId: string, reason: string, actor: AuthenticatedUser) {
     const gbvCase = await this.findOne(caseId, actor);
+    const status = reason === 'WITHDRAWN' ? 'CLOSED_WITHDRAWN' : 'CLOSED_SUCCESSFUL';
     return prisma.gbvCase.update({
       where: { id: gbvCase.id },
-      data: { status: 'CLOSED', closedAt: new Date(), closureReason: reason },
+      data: { status, closedAt: new Date() },
     });
   }
 
-  private assertCountyAccess(actor: AuthenticatedUser, countyCode?: string | null) {
+  private assertOrgUnitAccess(actor: AuthenticatedUser, orgUnitId: string) {
     if (actor.roles.includes('SUPER_ADMIN') || actor.roles.includes('ADMIN')) return;
-    if (!countyCode) return;
-    if (actor.countyIds.length > 0 && !actor.countyIds.includes(countyCode)) {
-      throw new ForbiddenException('Access to this case is restricted to your county');
+    if (actor.orgUnitIds.length > 0 && !actor.orgUnitIds.includes(orgUnitId)) {
+      throw new ForbiddenException('Access to this case is restricted to your assigned org units');
     }
   }
 }

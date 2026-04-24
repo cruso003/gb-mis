@@ -67,12 +67,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     const user = await prisma.user.findUnique({
       where: { keycloakSubject: sub },
       include: {
-        orgUnit: {
-          select: {
-            id: true,
-            countyCode: true,
-          },
-        },
+        orgUnitScopes: { select: { orgUnitId: true } },
       },
     });
 
@@ -85,17 +80,16 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     }
 
     const permissions = effectivePermissions(roles);
-    const orgUnitIds = user.orgUnitId ? [user.orgUnitId] : [];
-    const countyIds = user.orgUnit?.countyCode ? [user.orgUnit.countyCode] : [];
+    const orgUnitIds = user.orgUnitScopes.map((s) => s.orgUnitId);
 
     return {
       id: user.id,
       keycloakSubject: sub,
-      displayName: user.displayName ?? payload.name ?? payload.preferred_username ?? sub,
+      displayName: user.displayName,
       roles,
       permissions,
       orgUnitIds,
-      countyIds,
+      countyIds: orgUnitIds,
     };
   }
 }

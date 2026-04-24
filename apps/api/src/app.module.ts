@@ -1,7 +1,7 @@
 import type { MiddlewareConsumer, NestModule} from '@nestjs/common';
 import { Module, RequestMethod } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TerminusModule } from '@nestjs/terminus';
+import { TerminusModule, PrismaHealthIndicator } from '@nestjs/terminus';
 import { LoggerModule } from 'nestjs-pino';
 
 
@@ -14,7 +14,9 @@ import { HealthController } from './modules/health/health.controller';
 import { IndicatorsModule } from './modules/indicators/indicators.module';
 import { OrgUnitsModule } from './modules/orgunits/orgunits.module';
 import { ReportsModule } from './modules/reports/reports.module';
+import { SessionsModule } from './modules/sessions/sessions.module';
 import { SyncModule } from './modules/sync/sync.module';
+import { VslaModule } from './modules/vsla/vsla.module';
 import { UsersModule } from './modules/users/users.module';
 
 @Module({
@@ -57,11 +59,13 @@ import { UsersModule } from './modules/users/users.module';
     BeneficiariesModule,
     IndicatorsModule,
     ReportsModule,
+    SessionsModule,
+    VslaModule,
     AuditModule,
     SyncModule,
   ],
   controllers: [HealthController],
-  providers: [RlsMiddleware],
+  providers: [RlsMiddleware, PrismaHealthIndicator],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

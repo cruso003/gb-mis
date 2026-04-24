@@ -20,6 +20,7 @@ import {
   CreateBeneficiarySchema,
   type CreateBeneficiaryDto,
 } from './dto/create-beneficiary.dto';
+import { RecordGrantSchema, type RecordGrantDto } from './dto/record-grant.dto';
 
 @ApiTags('beneficiaries')
 @Controller('beneficiaries')
@@ -63,6 +64,29 @@ export class BeneficiariesController {
     @CurrentUser() actor: AuthenticatedUser,
   ) {
     return this.beneficiariesService.create(dto, actor);
+  }
+
+  @Get(':id/grants')
+  @RequirePermission('BENEFICIARY_GRANT_RECORD')
+  @AuditEvent('READ', 'Beneficiary')
+  @ApiOperation({ summary: 'List livelihood grants for a beneficiary' })
+  listGrants(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() actor: AuthenticatedUser,
+  ) {
+    return this.beneficiariesService.listGrants(id, actor);
+  }
+
+  @Post(':id/grants')
+  @RequirePermission('BENEFICIARY_GRANT_RECORD')
+  @AuditEvent('CREATE', 'LivelihoodGrant')
+  @ApiOperation({ summary: 'Record a livelihood grant disbursement for a beneficiary' })
+  recordGrant(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body(new ZodValidationPipe(RecordGrantSchema)) dto: RecordGrantDto,
+    @CurrentUser() actor: AuthenticatedUser,
+  ) {
+    return this.beneficiariesService.recordGrant(id, dto, actor);
   }
 
   @Post(':id/withdraw')

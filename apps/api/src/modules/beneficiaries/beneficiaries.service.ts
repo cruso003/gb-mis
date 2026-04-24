@@ -1,5 +1,4 @@
 import { prisma, encrypt, searchHash } from '@gb-mis/db';
-import type { Prisma } from '@gb-mis/db';
 import type { Paginated } from '@gb-mis/types';
 import {
   ForbiddenException,
@@ -10,23 +9,25 @@ import {
 import type { AuthenticatedUser } from '../../common/types/authenticated-user';
 
 import type { CreateBeneficiaryDto } from './dto/create-beneficiary.dto';
+import type { RecordGrantDto } from './dto/record-grant.dto';
 
 @Injectable()
 export class BeneficiariesService {
   async findAll(
     actor: AuthenticatedUser,
     params: { page: number; limit: number; search?: string },
-  ): Promise<Paginated<{ id: string; displayCode: string; status: string; orgUnitId: string }>> {
+  ): Promise<Paginated<{ id: string; beneficiaryCode: string; status: string; orgUnitId: string }>> {
     const { page, limit, search } = params;
     const skip = (page - 1) * limit;
 
-    const where: Prisma.BeneficiaryWhereInput = {};
+    const where: Record<string, unknown> = {};
 
     if (!actor.roles.includes('SUPER_ADMIN') && !actor.roles.includes('ADMIN')) {
-      where['orgUnit'] = { countyCode: { in: actor.countyIds } };
+      if (actor.orgUnitIds.length > 0) {
+        where['orgUnitId'] = { in: actor.orgUnitIds };
+      }
     }
 
-    // PII search uses HMAC search hash — never plaintext scan
     if (search) {
       const hash = await searchHash(search);
       where['nationalIdSearchHash'] = hash;
@@ -39,11 +40,11 @@ export class BeneficiariesService {
         take: limit,
         select: {
           id: true,
-          displayCode: true,
+          beneficiaryCode: true,
           status: true,
           orgUnitId: true,
           sex: true,
-          disabilityStatus: true,
+          disabilityStatuses: true,
           enrollmentSource: true,
           createdAt: true,
         },
@@ -59,90 +60,106 @@ export class BeneficiariesService {
     const beneficiary = await prisma.beneficiary.findUnique({
       where: { id },
       include: {
-        orgUnit: { select: { id: true, name: true, countyCode: true } },
+        orgUnit: { select: { id: true, name: true, code: true } },
         cases: { select: { id: true, status: true, priority: true, createdAt: true } },
-        householdMembers: true,
-        vslaGroups: { include: { vslaGroup: true } },
-        grants: true,
-        consentRecords: { orderBy: { createdAt: 'desc' }, take: 1 },
+        householdMemberships: true,
+        vslaMembers: { include: { vslaGroup: true } },
+        livelihoodGrants: true,
+        consentRecord: true,
       },
     });
 
     if (!beneficiary) throw new NotFoundException(`Beneficiary ${id} not found`);
-    this.assertCountyAccess(actor, beneficiary.orgUnit?.countyCode);
+    this.assertOrgUnitAccess(actor, beneficiary.orgUnitId);
 
     return beneficiary;
   }
 
-  async create(dto: CreateBeneficiaryDto, actor: AuthenticatedUser): Promise<{ id: string; displayCode: string }> {
-    const [fullNameEncrypted, nationalIdEncrypted, nationalIdSearchHash, emailEncrypted] =
+  async create(dto: CreateBeneficiaryDto, actor: AuthenticatedUser): Promise<{ id: string; beneficiaryCode: string }> {
+    const [fullNameEncrypted, nationalIdEncrypted, nationalIdSearchHash] =
       await Promise.all([
         encrypt(dto.fullName),
         dto.nationalId ? encrypt(dto.nationalId) : Promise.resolve(undefined),
         dto.nationalId ? searchHash(dto.nationalId) : Promise.resolve(undefined),
-        dto.email ? encrypt(dto.email) : Promise.resolve(undefined),
       ]);
 
-    const displayCode = await this.generateDisplayCode(dto.orgUnitId);
+    const beneficiaryCode = await this.generateBeneficiaryCode(dto.orgUnitId);
+    const consentId = crypto.randomUUID();
 
     const beneficiary = await prisma.beneficiary.create({
       data: {
-        displayCode,
+        beneficiaryCode,
         fullNameEncrypted,
-        nationalIdEncrypted,
-        nationalIdSearchHash,
-        emailEncrypted,
+        ...(nationalIdEncrypted !== undefined && { nationalIdEncrypted }),
+        ...(nationalIdSearchHash !== undefined && { nationalIdSearchHash }),
         sex: dto.sex,
-        dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : undefined,
-        disabilityStatus: dto.disabilityStatus,
+        dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : new Date('1900-01-01'),
+        disabilityStatuses: [dto.disabilityStatus],
         orgUnitId: dto.orgUnitId,
         enrollmentSource: dto.enrollmentSource,
-        registeredById: actor.id,
-        consentRecords: {
-          create: {
-            scope: dto.consentScope,
-            givenAt: new Date(dto.consentGivenAt),
-            witnessId: dto.consentWitnessId,
-            recordedById: actor.id,
-          },
-        },
+        createdById: actor.id,
+        updatedById: actor.id,
+        consentRecordId: consentId,
       },
-      select: { id: true, displayCode: true },
+      select: { id: true, beneficiaryCode: true },
+    });
+
+    await prisma.consentRecord.create({
+      data: {
+        id: consentId,
+        beneficiaryId: beneficiary.id,
+        scopes: [dto.consentScope],
+        grantedAt: new Date(dto.consentGivenAt),
+      },
     });
 
     return beneficiary;
   }
 
-  async withdraw(id: string, reason: string, actor: AuthenticatedUser) {
-    const beneficiary = await this.findOne(id, actor);
-
-    return prisma.$transaction([
-      prisma.beneficiary.update({
-        where: { id: beneficiary.id },
-        data: { status: 'WITHDRAWN' },
-      }),
-      prisma.consentRecord.create({
-        data: {
-          beneficiaryId: beneficiary.id,
-          scope: 'NONE',
-          givenAt: new Date(),
-          isWithdrawal: true,
-          withdrawalReason: reason,
-          recordedById: actor.id,
-        },
-      }),
-    ]);
+  async listGrants(beneficiaryId: string, actor: AuthenticatedUser) {
+    const beneficiary = await this.findOne(beneficiaryId, actor);
+    return prisma.livelihoodGrant.findMany({
+      where: { beneficiaryId: beneficiary.id },
+      orderBy: { disbursedAt: 'desc' },
+    });
   }
 
-  private assertCountyAccess(actor: AuthenticatedUser, countyCode?: string | null) {
+  async recordGrant(beneficiaryId: string, dto: RecordGrantDto, actor: AuthenticatedUser) {
+    const beneficiary = await this.findOne(beneficiaryId, actor);
+
+    return prisma.livelihoodGrant.create({
+      data: {
+        beneficiaryId: beneficiary.id,
+        grantCycle: dto.grantCycle,
+        amountLrd: dto.amountLrd,
+        amountUsd: dto.amountUsd,
+        disbursedAt: new Date(dto.disbursedAt),
+        status: 'DISBURSED',
+        createdById: actor.id,
+        ...(dto.partnerFintechTxnRef !== undefined && {
+          partnerFintechTxnRef: dto.partnerFintechTxnRef,
+        }),
+      },
+    });
+  }
+
+  async withdraw(id: string, _reason: string, actor: AuthenticatedUser) {
+    const beneficiary = await this.findOne(id, actor);
+
+    return prisma.beneficiary.update({
+      where: { id: beneficiary.id },
+      data: { status: 'WITHDRAWN' },
+    });
+  }
+
+  private assertOrgUnitAccess(actor: AuthenticatedUser, orgUnitId: string) {
     if (actor.roles.includes('SUPER_ADMIN') || actor.roles.includes('ADMIN')) return;
-    if (!countyCode) return;
-    if (actor.countyIds.length > 0 && !actor.countyIds.includes(countyCode)) {
-      throw new ForbiddenException('Access to this beneficiary is restricted to your county');
+    if (actor.orgUnitIds.length > 0 && !actor.orgUnitIds.includes(orgUnitId)) {
+      throw new ForbiddenException('Access to this beneficiary is restricted to your assigned org units');
     }
   }
 
-  private async generateDisplayCode(orgUnitId: string): Promise<string> {
+  private async generateBeneficiaryCode(orgUnitId: string): Promise<string> {
     const orgUnit = await prisma.orgUnit.findUnique({
       where: { id: orgUnitId },
       select: { code: true },

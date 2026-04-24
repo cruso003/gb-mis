@@ -1,30 +1,25 @@
-import { prisma, type Prisma } from '@gb-mis/db';
-import { getDhis2SyncableIndicators, getDhis2Mapping } from '@gb-mis/indicators';
+import { prisma } from '@gb-mis/db';
+import { getDhis2Mapping } from '@gb-mis/indicators';
 import type { Job } from 'bullmq';
 
 import { dhis2Client } from '../dhis2-client';
 
-type IndicatorValueRow = Prisma.IndicatorValueGetPayload<Record<string, never>>;
-
 export interface PushIndicatorsJobData {
-  period: string;
+  periodStart: string;
+  periodEnd: string;
 }
 
 export async function pushIndicators(job: Job<PushIndicatorsJobData>): Promise<void> {
-  const { period } = job.data;
-
-  const syncableIndicators = getDhis2SyncableIndicators();
-  if (syncableIndicators.length === 0) {
-    return;
-  }
-
-  const indicatorCodes = syncableIndicators.map((i) => i.code);
+  const { periodStart, periodEnd } = job.data;
 
   const values = await prisma.indicatorValue.findMany({
     where: {
-      indicatorCode: { in: indicatorCodes },
-      period,
-      qualityFlag: { in: ['OFFICIAL', 'PRELIMINARY'] },
+      periodStart: { gte: new Date(periodStart) },
+      periodEnd: { lte: new Date(periodEnd) },
+      qualityFlag: { in: ['VERIFIED', 'PROVISIONAL'] },
+    },
+    include: {
+      indicator: { select: { code: true, dhis2DataElementId: true } },
     },
   });
 
@@ -34,15 +29,15 @@ export async function pushIndicators(job: Job<PushIndicatorsJobData>): Promise<v
 
   type DataValue = { dataElement: string; period: string; orgUnit: string; value: string; comment: string };
 
-  const dataValues = (values as IndicatorValueRow[])
+  const dataValues = values
     .map((v): DataValue | null => {
-      const mapping = getDhis2Mapping(v.indicatorCode);
-      if (!mapping) return null;
-
+      if (!v.indicator.dhis2DataElementId) return null;
+      const mapping = getDhis2Mapping(v.indicator.code);
+      const periodStr = v.periodStart.toISOString().slice(0, 7).replace('-', '');
       return {
-        dataElement: mapping.dhis2DataElementId,
-        period: v.period.replace('-', ''),
-        orgUnit: mapping.dhis2OrgUnitId ?? '',
+        dataElement: v.indicator.dhis2DataElementId,
+        period: periodStr,
+        orgUnit: mapping?.dhis2OrgUnitId ?? '',
         value: String(v.value),
         comment: `GB MIS export — quality: ${v.qualityFlag}`,
       };

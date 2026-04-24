@@ -12,13 +12,13 @@
     }
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && cp -r src/generated dist/generated",
     "typecheck": "tsc --noEmit",
     "generate": "prisma generate",
     "migrate": "prisma migrate deploy",
     "migrate:dev": "prisma migrate dev",
     "reset": "prisma migrate reset",
-    "seed": "tsx seed/index.ts",
+    "seed": "tsx --env-file=.env seed/index.ts",
     "studio": "prisma studio",
     "lint": "eslint src seed --ext .ts",
     "clean": "rm -rf dist"

@@ -5,36 +5,36 @@ import { Injectable } from '@nestjs/common';
 @Injectable()
 export class AuditService {
   async findAll(params: {
-    actorId?: string;
-    resource?: string;
+    actorUserId?: string;
+    entityType?: string;
     action?: AuditAction;
     from?: string;
     to?: string;
     page: number;
     limit: number;
   }) {
-    const { actorId, resource, action, from, to, page, limit } = params;
+    const { actorUserId, entityType, action, from, to, page, limit } = params;
     const skip = (page - 1) * limit;
 
     const where: Record<string, unknown> = {};
-    if (actorId) where['actorId'] = actorId;
-    if (resource) where['resource'] = resource;
+    if (actorUserId) where['actorUserId'] = actorUserId;
+    if (entityType) where['entityType'] = entityType;
     if (action) where['action'] = action;
     if (from || to) {
-      where['createdAt'] = {};
-      if (from) (where['createdAt'] as Record<string, unknown>)['gte'] = new Date(from);
-      if (to) (where['createdAt'] as Record<string, unknown>)['lte'] = new Date(to);
+      where['occurredAt'] = {};
+      if (from) (where['occurredAt'] as Record<string, unknown>)['gte'] = new Date(from);
+      if (to) (where['occurredAt'] as Record<string, unknown>)['lte'] = new Date(to);
     }
 
     const [items, total] = await Promise.all([
-      prisma.auditLog.findMany({
+      prisma.auditEvent.findMany({
         where,
         skip,
         take: limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { occurredAt: 'desc' },
         include: { actor: { select: { displayName: true } } },
       }),
-      prisma.auditLog.count({ where }),
+      prisma.auditEvent.count({ where }),
     ]);
 
     return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
