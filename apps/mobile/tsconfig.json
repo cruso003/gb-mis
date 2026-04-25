@@ -4,6 +4,7 @@
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": false,
+    "experimentalDecorators": true,
     "paths": {
       "@gb-mis/*": ["../../packages/*/src"]
     }

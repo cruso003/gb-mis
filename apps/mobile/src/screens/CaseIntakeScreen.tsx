@@ -1,12 +1,9 @@
 import { useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { QuickExitButton } from '../components/QuickExitButton';
-
-// Multi-step offline-capable case intake form
-// Stage 1 (current): UI skeleton with validation
-// Stage 3: WatermelonDB persistence + sync engine writes
+import { createOfflineCase } from '../sync/SyncEngine';
 
 const VIOLENCE_TYPES = ['PHYSICAL', 'SEXUAL', 'EMOTIONAL', 'ECONOMIC', 'NEGLECT', 'TRAFFICKING'];
 const INTAKE_CHANNELS = ['FIELD_WORKER', 'HOTLINE', 'SELF_REFERRAL', 'COMMUNITY_LEADER', 'HEALTH_FACILITY'];
@@ -16,6 +13,9 @@ export function CaseIntakeScreen() {
   const [step, setStep] = useState(1);
   const [violenceType, setViolenceType] = useState('');
   const [intakeChannel, setIntakeChannel] = useState('');
+  const [incidentNotes, setIncidentNotes] = useState('');
+  const [perpetratorRelationship, setPerpetratorRelationship] = useState('');
+  const [saving, setSaving] = useState(false);
 
   const handleNext = () => {
     if (step === 1 && !violenceType) {
@@ -25,12 +25,32 @@ export function CaseIntakeScreen() {
     setStep((s) => s + 1);
   };
 
-  const handleSubmit = () => {
-    // Stage 3: write to WatermelonDB pending_sync queue
-    Alert.alert('Saved offline', 'This case will be uploaded to the server when connectivity is available.');
-    setStep(1);
-    setViolenceType('');
-    setIntakeChannel('');
+  const handleSubmit = async () => {
+    setSaving(true);
+    try {
+      await createOfflineCase({
+        violenceType,
+        intakeChannel: intakeChannel || 'COMMUNITY',
+        // orgUnitId will be filled from auth context in a future iteration;
+        // for now use a placeholder that the sync engine will resolve server-side.
+        orgUnitId: 'PENDING_FROM_AUTH',
+        ...(incidentNotes ? { notes: incidentNotes } : {}),
+        ...(perpetratorRelationship ? { perpetratorRelationship } : {}),
+      });
+      Alert.alert(
+        'Saved offline',
+        'This case has been saved to your device and will sync automatically when connectivity is available.',
+      );
+      setStep(1);
+      setViolenceType('');
+      setIntakeChannel('');
+      setIncidentNotes('');
+      setPerpetratorRelationship('');
+    } catch (err) {
+      Alert.alert('Save failed', err instanceof Error ? err.message : 'Unknown error');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -86,9 +106,16 @@ export function CaseIntakeScreen() {
               numberOfLines={6}
               placeholder="Describe the reported incident…"
               textAlignVertical="top"
+              value={incidentNotes}
+              onChangeText={setIncidentNotes}
             />
             <Text style={styles.label}>Perpetrator Relationship (if known)</Text>
-            <TextInput style={styles.input} placeholder="e.g. Intimate partner, Unknown" />
+            <TextInput
+              style={styles.input}
+              placeholder="e.g. Intimate partner, Unknown"
+              value={perpetratorRelationship}
+              onChangeText={setPerpetratorRelationship}
+            />
           </View>
         )}
 
@@ -117,8 +144,16 @@ export function CaseIntakeScreen() {
               <Text style={styles.nextButtonText}>Next</Text>
             </TouchableOpacity>
           ) : (
-            <TouchableOpacity style={styles.nextButton} onPress={handleSubmit}>
-              <Text style={styles.nextButtonText}>Save Offline</Text>
+            <TouchableOpacity
+              style={[styles.nextButton, saving && styles.nextButtonDisabled]}
+              onPress={() => { void handleSubmit(); }}
+              disabled={saving}
+            >
+              {saving ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.nextButtonText}>Save Offline</Text>
+              )}
             </TouchableOpacity>
           )}
         </View>
@@ -183,5 +218,6 @@ const styles = StyleSheet.create({
   },
   backButtonText: { fontSize: 16, fontWeight: '600', color: '#374151' },
   nextButton: { flex: 2, backgroundColor: '#7b2d8b', borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
+  nextButtonDisabled: { opacity: 0.6 },
   nextButtonText: { fontSize: 16, fontWeight: '700', color: '#fff' },
 });
