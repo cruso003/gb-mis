@@ -68,6 +68,50 @@ gb-mis/
 
 ---
 
+## Current build state (as of April 2026)
+
+The monorepo is in **Stage 3 — Core Development** of the ROADMAP. All Stage 2 work is complete and committed. The following are done and merged to `main`:
+
+### Stage 2 — complete
+- Turborepo + pnpm workspaces monorepo with `apps/web`, `apps/mobile`, `apps/api`, `packages/*`, `services/*`
+- PostgreSQL 16 + PostGIS + pgcrypto schema via Prisma 5 (`packages/db`); full data model from `DATA_MODEL.md`
+- Row-level security policies for county-scoped tables
+- Keycloak OIDC integration with PKCE; NestJS `JwtAuthGuard` + `PermissionsGuard`
+- Full RBAC permission registry (`packages/auth`) covering all seven roles
+- Org-unit hierarchy seeded with LISGIS county codes
+- Indicator catalog seeded — 48+ indicators from `INDICATORS_CATALOG.md` (`packages/indicators`)
+- CI/CD pipeline (GitHub Actions): typecheck, lint, test, SAST, Docker build smoke test
+- Docker Compose stack: PostgreSQL 16, Redis 7, Keycloak 25, MinIO
+- Shared design system (`packages/ui`) on shadcn/ui + Tailwind 4 with MOGCSP brand palette
+- OpenAPI spec v0.1 committed
+
+### Stage 3 — in progress
+
+**Done:**
+
+| Area | What's built |
+|---|---|
+| **Beneficiaries** | Creation flow, consent capture, household linking, REALISE dedup hook, livelihood grant recording, VSLA and community-session tracking |
+| **Cases** | Intake, supervisor review workflow, incidents, services, referrals, attachments with client-side encryption |
+| **Indicators** | Computation engine, manual-entry workflow, target-setting, DHIS2 mapping |
+| **Secondary data (ETL)** | LISGIS CSV and DHS ingestion jobs; `SecondaryDataset` / `SecondaryDataPoint` models; BullMQ queue; dataset API endpoints; web datasets page |
+| **Reports** | `ReportsService` with monthly county, quarterly LWEP, annual CEDAW templates; report-template cards in the web UI |
+| **Audit** | Audit event emission across all mutations and sensitive reads; hash-chain verification job |
+| **DHIS2 sync worker** | BullMQ worker stub wired; push-aggregate and pull-org-unit jobs scaffolded |
+| **Mobile offline** | WatermelonDB schema (`gbv_cases`, `beneficiaries`, `sync_records`); `GbvCaseModel`, `BeneficiaryModel`, `SyncRecordModel`; `SyncEngine` (delta pull + batch push, PENDING → SYNCED/FAILED); `CaseIntakeScreen` writing offline; `useSyncStatus` hook; quick-exit control; biometric unlock |
+| **Web admin** | Users, roles, audit review, indicator catalog management, secondary datasets |
+| **Public dashboard** | `GET /public/indicators` and `GET /public/counties` (no auth); Next.js ISR page at `/public/dashboard` with MOGCSP branding and framework-grouped indicator table |
+
+**Remaining for Stage 3:**
+
+- Localisation scaffolding — externalise English strings; translation workflow
+- Comprehensive test coverage — unit (Vitest), integration, Playwright e2e, Schemathesis contract, axe-core a11y
+- Penetration test preparation — hardening checklist
+- Runbooks — deploy, rollback, backup/restore, disaster recovery, incident response
+- Operational Grafana dashboards
+
+---
+
 ## Non-negotiable commitments
 
 These come directly from the TOR and the MOGCSP-World Bank agreement. Every implementation decision defers to them.

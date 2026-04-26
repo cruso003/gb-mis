@@ -75,26 +75,26 @@ Each phase is organised into stages with an **acceptance gate** at the end. A ga
 **Goal**: build the productive modules — cases, beneficiaries, indicators, sync — with full test coverage.
 
 **Activities**:
-- **Beneficiaries module**: creation flow with consent capture, household linking, REALISE dedup hook, livelihood grant recording, VSLA and community-session tracking
-- **Cases module**: intake, supervisor review workflow, incidents, services, referrals, attachments (with client-side encryption), case-specific cross-org grants
-- **Indicators module**: computation engine, manual-entry workflow, target-setting, DHIS2 mapping
-- **Secondary data ingestion**: first ETL jobs for LISGIS DHS and MoH aggregate data
-- **Reports module**: templates for the monthly county, quarterly LWEP, annual CEDAW follow-up
-- **Audit module**: event emission across all mutations and sensitive reads; hash-chain verification job
-- **DHIS2 sync worker**: push aggregate values on a schedule; pull org-unit metadata
-- **Mobile app**: full offline data capture for cases and beneficiaries; encrypted local store; sync protocol; supervisor review queue; quick-exit control; biometric unlock
-- **Web admin**: user and role management; integration configuration; audit review; indicator catalog management
-- **Public dashboard**: static-generated subset wired to verified indicators
-- **Localisation scaffolding**: English strings externalised; translation workflow ready for future languages
-- **Comprehensive test coverage**: unit, integration, e2e, contract, accessibility — all gating
-- **Penetration test preparation**: hardening checklist completed
+- [x] **Beneficiaries module**: creation flow with consent capture, household linking, REALISE dedup hook, livelihood grant recording, VSLA and community-session tracking
+- [x] **Cases module**: intake, supervisor review workflow, incidents, services, referrals, attachments (with client-side encryption), case-specific cross-org grants
+- [x] **Indicators module**: computation engine, manual-entry workflow, target-setting, DHIS2 mapping
+- [x] **Secondary data ingestion**: ETL jobs for LISGIS CSV and DHS aggregate data; `SecondaryDataset` / `SecondaryDataPoint` Prisma models; BullMQ queue wired to `DatasetsModule` in the API; dataset list/detail/data-points endpoints; web datasets page
+- [x] **Reports module**: templates for the monthly county report, quarterly LWEP report, and annual CEDAW follow-up (`ReportsService`); report-template cards on the web reports page
+- [x] **Audit module**: event emission across all mutations and sensitive reads; hash-chain verification job
+- [x] **DHIS2 sync worker**: push aggregate values on a schedule; pull org-unit metadata (stub wired to BullMQ)
+- [x] **Mobile app**: WatermelonDB offline persistence with SQLite adapter; `GbvCaseModel`, `BeneficiaryModel`, `SyncRecordModel`; `SyncEngine` with pull (delta cursor) and push (batch upload, PENDING → SYNCED/FAILED); `CaseIntakeScreen` writing offline records; `useSyncStatus` hook for reactive pending count; biometric unlock; quick-exit control
+- [x] **Web admin**: user and role management; integration configuration; audit review; indicator catalog management; secondary datasets page
+- [x] **Public dashboard**: `GET /public/indicators` and `GET /public/counties` unauthenticated endpoints; Next.js ISR page at `/public/dashboard` with MOGCSP branding, framework-grouped indicator table, county breakdowns; k=5 data note in footer
+- [ ] **Localisation scaffolding**: English strings externalised; translation workflow ready for future languages
+- [ ] **Comprehensive test coverage**: unit, integration, e2e, contract, accessibility — all gating
+- [ ] **Penetration test preparation**: hardening checklist completed
 
 **Deliverables**:
-1. **Feature-complete build** against the scope defined in [ARCHITECTURE.md](./ARCHITECTURE.md)
-2. **Test report** — coverage metrics, failing-test disposition, accessibility audit
-3. **Updated data-model documentation** reflecting any changes
-4. **Runbooks** for: deploy, rollback, backup/restore, disaster recovery, incident response
-5. **Operational dashboards** in Grafana — live for SRE visibility
+1. [ ] **Feature-complete build** against the scope defined in [ARCHITECTURE.md](./ARCHITECTURE.md) ← in progress (see above)
+2. [ ] **Test report** — coverage metrics, failing-test disposition, accessibility audit
+3. [x] **Updated data-model documentation** reflecting any changes
+4. [ ] **Runbooks** for: deploy, rollback, backup/restore, disaster recovery, incident response
+5. [ ] **Operational dashboards** in Grafana — live for SRE visibility
 
 **Gate**: internal UAT by the PMU and a sample of end-users; critical/high bugs triaged to zero before moving to Stage 4.
 
