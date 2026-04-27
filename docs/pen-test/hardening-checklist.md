@@ -43,12 +43,12 @@ threats in [`SECURITY.md § Threat model`](../../SECURITY.md#threat-model).
 | B1 | Permission registry covers all 7 roles with effective-permission union | ✅ `packages/auth/src/permissions.ts` + `permissions.test.ts` (17 unit tests) |
 | B2 | Global `JwtAuthGuard` + `PermissionsGuard` applied via `APP_GUARD` | ✅ `apps/api/src/modules/auth/auth.module.ts` |
 | B3 | `@Public()` decorator audited — every public endpoint enumerated and intentional | ✅ `apps/api/src/modules/public/public.controller.test.ts` (contract test enforces) |
-| B4 | RLS policies on every county-scoped table (`GbvCase`, `Beneficiary`, `Incident`, `ServiceProvided`, `Referral`, `CaseAttachment`, `Household`, `VslaGroup`, `CommunitySession`) | ❌ **Critical gap.** `packages/db/src/rls-template.sql` exists as a template but no migration applies the policies. CLAUDE.md rule #11 is not yet honoured. Ship an RLS migration before the pen-test or this is a guaranteed finding |
-| B5 | RLS session variables set per request (org-unit IDs, user ID) | ⚠️ `apps/api/src/modules/auth/rls.middleware.ts` exists but has no value to set against absent policies (B4); will become useful when B4 lands |
-| B6 | Cross-scope reads require supervisor override + are audited | ❌ Override workflow not implemented; track with B4 |
+| B4 | RLS policies on every county-scoped table (`GbvCase`, `Beneficiary`, `Incident`, `ServiceProvided`, `Referral`, `CaseAttachment`, `Household`, `VslaGroup`, `CommunitySession`) | ✅ Migration `20260427143000_add_rls_policies` applies USING + WITH CHECK policies on all 14 county-scoped tables (5 direct + 4 case-indirect + 5 beneficiary/session-indirect). Helper function `current_user_org_unit_scope()` returns the assigned org units plus their full descendant subtree. Bypass via `app.bypass_rls = 'on'` for SUPER_ADMIN / ADMIN |
+| B5 | RLS session variables set per request (org-unit IDs, user ID) | ✅ `RlsMiddleware` pushes `{userId, bypassRls}` into AsyncLocalStorage; the Prisma `$extends({ query: { $allOperations: ... } })` in `packages/db/src/client.ts` wraps every operation in a transaction with `SET LOCAL app.current_user_id` + `SET LOCAL app.bypass_rls`. Works under transaction-mode pgBouncer (per `runbooks/deploy.md`). 8 unit tests lock in the role → bypass mapping |
+| B6 | Cross-scope reads require supervisor override + are audited | ❌ Override workflow not implemented. With B4 in place, RLS denies cross-scope reads outright; the override path is a Stage-3 follow-up |
 | B7 | k-anonymity threshold 5 enforced on every aggregate response | ✅ `apps/api/src/modules/reports/reports.k-anonymity.test.ts` locks K=5; `suppress()` applied across reports service |
 
-🔒 **MOGCSP approval required**: B4 + B6 closure must be signed off by the ICT Director **before** the external tester is scheduled.
+🔒 **MOGCSP approval required**: B6 (supervisor-override workflow) closure or explicit deferral must be signed off by the ICT Director **before** the external tester is scheduled. B4 + B5 are in place; the production deployment must additionally configure a non-owner Postgres role (`gb_mis_app`) for the API connection string so RLS actually applies — verify in `runbooks/deploy.md § 3` before pen-test.
 
 ---
 
