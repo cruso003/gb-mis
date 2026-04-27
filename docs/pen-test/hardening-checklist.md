@@ -135,8 +135,8 @@ threats in [`SECURITY.md § Threat model`](../../SECURITY.md#threat-model).
 | I1 | Structured JSON logs via pino with PII redaction | ✅ `apps/api/src/app.module.ts:32` redact list |
 | I2 | Redact list covers `nationalId`, `fullName`, `phoneNumber` at minimum | ✅ Verify completeness against `DATA_MODEL.md` Restricted/Sensitive columns |
 | I3 | Errors shipped to Sentry (self-hosted) | ❌ Sentry SDK not yet wired; install `@sentry/node` + `@sentry/nextjs` before pen-test so findings are observable |
-| I4 | Metrics exported to Prometheus + Grafana dashboards live | ❌ OTel + Prometheus exporter not yet wired. Tracked separately as a Stage 3 follow-up; not blocking but reduces investigative power during the pen-test |
-| I5 | Anomalous audit volume alerts (sudden drop or spike) | ❌ Depends on I4 |
+| I4 | Metrics exported to Prometheus + Grafana dashboards live | ✅ OTel SDK + auto-instrumentation in `apps/api/src/instrumentation.ts`; Prometheus exporter on port 9464; Grafana provisioning in `infra/grafana/`; *GB MIS — API Operational* dashboard (`infra/grafana/dashboards/api-operational.json`) plots HTTP rate/latency/errors and audit emit health |
+| I5 | Anomalous audit volume alerts (sudden drop or spike) | ⚠️ Audit emit rate panels exist; alert rules wired in Grafana itself are a follow-up — set the **Audit emit failure rate** stat-panel threshold to page when sustained > 0.1/s |
 
 ---
 

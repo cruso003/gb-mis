@@ -1,3 +1,8 @@
+// Instrumentation must be the FIRST import — it installs OpenTelemetry's
+// module-loader hooks before any other module is loaded. See
+// apps/api/src/instrumentation.ts for the full rationale.
+import './instrumentation';
+
 import 'reflect-metadata';
 
 import helmet from '@fastify/helmet';

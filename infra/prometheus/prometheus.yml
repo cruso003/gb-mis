@@ -1,0 +1,30 @@
+# Prometheus scrape configuration for the GB MIS local stack.
+# Production deployments replace this file with their operator's
+# preferred config; the metric names and labels stay the same so
+# the same Grafana dashboards render against either.
+
+global:
+  scrape_interval: 15s
+  scrape_timeout: 10s
+  external_labels:
+    environment: local
+
+scrape_configs:
+  - job_name: gb-mis-api
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          # The API exposes Prometheus metrics on port 9464 (set in
+          # apps/api/src/instrumentation.ts). When running the API
+          # outside Docker (pnpm dev), Docker's host network is needed
+          # — this maps via host.docker.internal on Mac/Windows or
+          # the docker0 bridge IP on Linux. For full-Compose runs,
+          # change to gb-mis-api:9464.
+          - host.docker.internal:9464
+        labels:
+          service: api
+          deployment: local
+
+  - job_name: prometheus
+    static_configs:
+      - targets: ['localhost:9090']

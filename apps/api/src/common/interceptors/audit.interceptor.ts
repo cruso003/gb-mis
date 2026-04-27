@@ -13,6 +13,7 @@ import type { Reflector } from '@nestjs/core';
 import type { FastifyRequest } from 'fastify';
 import { Observable } from 'rxjs';
 
+import { auditEmitCounter, auditEmitLatency } from '../../observability/metrics';
 import type { AuthenticatedUser } from '../types/authenticated-user';
 
 export const AUDIT_ACTION_KEY = 'auditAction';
@@ -142,6 +143,7 @@ export class AuditInterceptor implements NestInterceptor {
     // returns 500 with a clear log line. Operationally this requires the
     // audit_log table to be available; that's exactly the point — a system
     // that can't audit must not accept survivor-data mutations.
+    const startedAt = process.hrtime.bigint();
     try {
       await prisma.auditEvent.create({
         data: {
@@ -154,7 +156,9 @@ export class AuditInterceptor implements NestInterceptor {
           success: data.success,
         },
       });
+      auditEmitCounter.add(1, { outcome: 'ok', success: String(data.success) });
     } catch (err) {
+      auditEmitCounter.add(1, { outcome: 'error', success: String(data.success) });
       this.logger.error(
         `Audit emission failed for ${data.action} on ${data.entityType}${
           data.entityId ? ` (${data.entityId})` : ''
@@ -162,6 +166,9 @@ export class AuditInterceptor implements NestInterceptor {
         err instanceof Error ? err.stack : String(err),
       );
       throw err;
+    } finally {
+      const durationSeconds = Number(process.hrtime.bigint() - startedAt) / 1_000_000_000;
+      auditEmitLatency.record(durationSeconds);
     }
   }
 }

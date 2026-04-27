@@ -86,15 +86,15 @@ Each phase is organised into stages with an **acceptance gate** at the end. A ga
 - [x] **Web admin**: user and role management; integration configuration; audit review; indicator catalog management; secondary datasets page
 - [x] **Public dashboard**: `GET /public/indicators` and `GET /public/counties` unauthenticated endpoints; Next.js ISR page at `/public/dashboard` with MOGCSP branding, framework-grouped indicator table, county breakdowns; k=5 data note in footer
 - [ ] **Localisation scaffolding**: English strings externalised; translation workflow ready for future languages
-- [ ] **Comprehensive test coverage**: unit, integration, e2e, contract, accessibility — all gating
-- [ ] **Penetration test preparation**: hardening checklist completed
+- [x] **Comprehensive test coverage**: first slice landed (Vitest in apps/api + packages/auth + packages/indicators; Playwright + axe-core for the public dashboard; Schemathesis schema-level in CI). Coverage grows incrementally
+- [x] **Penetration test preparation**: hardening checklist + scope/ROE in `docs/pen-test/`
 
 **Deliverables**:
 1. [ ] **Feature-complete build** against the scope defined in [ARCHITECTURE.md](./ARCHITECTURE.md) ← in progress (see above)
 2. [ ] **Test report** — coverage metrics, failing-test disposition, accessibility audit
 3. [x] **Updated data-model documentation** reflecting any changes
-4. [ ] **Runbooks** for: deploy, rollback, backup/restore, disaster recovery, incident response
-5. [ ] **Operational dashboards** in Grafana — live for SRE visibility
+4. [x] **Runbooks** for: deploy, rollback, backup/restore, disaster recovery, incident response (`docs/runbooks/`)
+5. [x] **Operational dashboards** in Grafana — `infra/grafana/dashboards/api-operational.json` plots HTTP rate/latency/errors and audit emit health; OTel + Prometheus scrape wired in `infra/prometheus/`
 
 **Gate**: internal UAT by the PMU and a sample of end-users; critical/high bugs triaged to zero before moving to Stage 4.
 

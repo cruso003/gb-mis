@@ -128,8 +128,8 @@ Complete every check. Failure of any check triggers the rollback criteria in sec
 5. **Mobile sync endpoint**: `curl -sf -H "Authorization: Bearer $TEST_TOKEN" "https://$API_HOST/v1/sync/pull?resources=cases"` returns 200 with a JSON body.
 6. **Public dashboard**: `curl -sf https://$WEB_HOST/public/dashboard | grep -q 'verified indicators'`.
 7. **Error rate** in Sentry: no new error groups in the last 5 minutes attributable to the new release.
-8. **API p95 latency**: under the 800 ms SLA target (per `ARCHITECTURE.md § Performance targets`). Check the Grafana API-latency dashboard.
-9. **Audit volume**: not anomalously low (would indicate audit emission silently broken). Check the Grafana audit-volume panel.
+8. **API p95 latency**: under the 800 ms SLA target (per `ARCHITECTURE.md § Performance targets`). Check the **HTTP p95 latency** panel on the *GB MIS — API Operational* dashboard (`infra/grafana/dashboards/api-operational.json`).
+9. **Audit volume**: not anomalously low (would indicate audit emission silently broken). Check the **Audit emit rate** panel on the same dashboard.
 
 ---
 
