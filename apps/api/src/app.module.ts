@@ -7,19 +7,19 @@ import { LoggerModule } from 'nestjs-pino';
 
 import { AuditModule } from './modules/audit/audit.module';
 import { AuthModule } from './modules/auth/auth.module';
-import { DatasetsModule } from './modules/datasets/datasets.module';
-import { PublicModule } from './modules/public/public.module';
 import { RlsMiddleware } from './modules/auth/rls.middleware';
 import { BeneficiariesModule } from './modules/beneficiaries/beneficiaries.module';
 import { CasesModule } from './modules/cases/cases.module';
+import { DatasetsModule } from './modules/datasets/datasets.module';
 import { HealthController } from './modules/health/health.controller';
 import { IndicatorsModule } from './modules/indicators/indicators.module';
 import { OrgUnitsModule } from './modules/orgunits/orgunits.module';
+import { PublicModule } from './modules/public/public.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { SessionsModule } from './modules/sessions/sessions.module';
 import { SyncModule } from './modules/sync/sync.module';
-import { VslaModule } from './modules/vsla/vsla.module';
 import { UsersModule } from './modules/users/users.module';
+import { VslaModule } from './modules/vsla/vsla.module';
 
 @Module({
   imports: [
