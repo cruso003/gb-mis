@@ -1,35 +1,35 @@
-import { prisma } from '@gb-mis/db';
+import { rlsContextStore } from '@gb-mis/db';
 import type { NestMiddleware } from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 
 import type { AuthenticatedUser } from '../../common/types/authenticated-user';
 
+const BYPASS_ROLES = new Set(['SUPER_ADMIN', 'ADMIN']);
+
 /**
- * Injects PostgreSQL session variables for RLS per request.
- * Must run after JwtAuthGuard so request.user is populated.
+ * Pushes the authenticated user's identity into AsyncLocalStorage so
+ * the Prisma extension in `@gb-mis/db` can emit `SET LOCAL` for the
+ * RLS session variables on every query within this request.
  *
- * The RLS policies rely on:
- *   app.current_user_id  — used by all county-scoped tables
- *   app.current_county_ids — comma-separated county codes for multi-county access
+ * Must run after JwtAuthGuard so request.user is populated. Public
+ * routes have no user — RLS-bearing tables are not reachable through
+ * them by design.
  */
 @Injectable()
 export class RlsMiddleware implements NestMiddleware {
-  async use(
+  use(
     req: FastifyRequest & { user?: AuthenticatedUser },
     _res: FastifyReply,
     next: () => void,
-  ): Promise<void> {
+  ): void {
     const user = req.user;
-    if (user) {
-      const countyList = user.countyIds.join(',');
-      await prisma.$executeRawUnsafe(
-        `SELECT set_config('app.current_user_id', $1, true),
-                set_config('app.current_county_ids', $2, true)`,
-        user.id,
-        countyList,
-      );
+    if (!user) {
+      next();
+      return;
     }
-    next();
+
+    const bypassRls = user.roles.some((r) => BYPASS_ROLES.has(r));
+    rlsContextStore.run({ userId: user.id, bypassRls }, () => next());
   }
 }

@@ -104,11 +104,10 @@ The monorepo is in **Stage 3 — Core Development** of the ROADMAP. All Stage 2 
 
 **Remaining for Stage 3:**
 
-- Localisation scaffolding — externalise English strings; translation workflow
-- Comprehensive test coverage — unit (Vitest), integration, Playwright e2e, Schemathesis contract, axe-core a11y
-- Penetration test preparation — hardening checklist
-- Runbooks — deploy, rollback, backup/restore, disaster recovery, incident response
-- Operational Grafana dashboards
+- Comprehensive test coverage growth — first slice landed (Vitest API + permissions + indicators + Playwright + axe-core); continued expansion as features land
+- Live-API Schemathesis contract testing — schema-level validation already in CI; full live-API mode needs Keycloak in CI
+- Sentry error tracking wiring
+- Mobile test infrastructure (Jest + RNTL) — currently no mobile tests
 
 ---
 

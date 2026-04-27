@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { database } from '../db/database';
+import { getDatabase } from '../db/database';
 import type { SyncRecordModel } from '../db/models/SyncRecordModel';
 
 interface SyncFailure {
@@ -27,7 +27,7 @@ export function useSyncStatus(): SyncStatus {
 
   useEffect(() => {
     // Subscribe to sync_records with WatermelonDB's reactive query.
-    const subscription = database
+    const subscription = getDatabase()
       .get<SyncRecordModel>('sync_records')
       .query()
       .observe()

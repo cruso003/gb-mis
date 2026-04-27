@@ -1,7 +1,7 @@
 import { effectivePermissions } from '@gb-mis/auth';
 import { prisma } from '@gb-mis/db';
 import type { Role } from '@gb-mis/types';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { passportJwtSecret } from 'jwks-rsa';
@@ -34,7 +34,7 @@ const GB_MIS_ROLES = new Set<string>([
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
-  constructor(configService: ConfigService) {
+  constructor(@Inject(ConfigService) configService: ConfigService) {
     const keycloakUrl = configService.getOrThrow<string>('KEYCLOAK_URL');
     const realm = configService.getOrThrow<string>('KEYCLOAK_REALM');
 

@@ -1,13 +1,7 @@
 import { prisma } from '@gb-mis/db';
 import { Controller, Get } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import type {
-  HealthCheckService,
-  PrismaHealthIndicator} from '@nestjs/terminus';
-import {
-  HealthCheck
-} from '@nestjs/terminus';
-
+import { HealthCheck, HealthCheckService, PrismaHealthIndicator } from '@nestjs/terminus';
 
 import { Public } from '../../common/decorators/public.decorator';
 

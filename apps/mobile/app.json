@@ -27,13 +27,15 @@
     "plugins": [
       "expo-local-authentication",
       "expo-secure-store",
+      "./plugins/withSqlcipher.js",
       [
         "expo-build-properties",
         {
           "android": {
             "compileSdkVersion": 35,
             "targetSdkVersion": 35,
-            "buildToolsVersion": "35.0.0"
+            "buildToolsVersion": "35.0.0",
+            "allowBackup": false
           }
         }
       ]

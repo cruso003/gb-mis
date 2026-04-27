@@ -13,10 +13,10 @@
 
 import * as SecureStore from 'expo-secure-store';
 
-import { database } from '../db/database';
+import { getDatabase } from '../db/database';
 import type { BeneficiaryModel } from '../db/models/BeneficiaryModel';
-import { GbvCaseModel } from '../db/models/GbvCaseModel';
-import { SyncRecordModel } from '../db/models/SyncRecordModel';
+import type { GbvCaseModel } from '../db/models/GbvCaseModel';
+import type { SyncRecordModel } from '../db/models/SyncRecordModel';
 
 const API_BASE = process.env['EXPO_PUBLIC_API_URL'] ?? 'http://localhost:4000';
 const CURSOR_KEY = 'gbmis.syncCursor';
@@ -46,6 +46,7 @@ export interface SyncSummary {
 // ─── Pull ─────────────────────────────────────────────────────────────────────
 
 async function pull(accessToken?: string): Promise<number> {
+  const database = getDatabase();
   const cursor = await SecureStore.getItemAsync(CURSOR_KEY);
 
   const url = `${API_BASE}/v1/sync/pull?resources=cases,beneficiaries${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`;
@@ -117,6 +118,7 @@ async function pull(accessToken?: string): Promise<number> {
 // ─── Push ─────────────────────────────────────────────────────────────────────
 
 async function push(accessToken?: string): Promise<{ accepted: number; rejected: number }> {
+  const database = getDatabase();
   const syncRecordCollection = database.get<SyncRecordModel>('sync_records');
   const pending = await syncRecordCollection
     .query()
@@ -225,6 +227,7 @@ export async function createOfflineCase(data: {
   notes?: string;
   perpetratorRelationship?: string;
 }): Promise<string> {
+  const database = getDatabase();
   const clientEventId = generateUUID();
 
   let localId = '';

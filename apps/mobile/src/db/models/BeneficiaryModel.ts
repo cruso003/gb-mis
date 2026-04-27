@@ -1,5 +1,5 @@
 import { Model } from '@nozbe/watermelondb';
-import { field, date, text, readonly } from '@nozbe/watermelondb/decorators';
+import { date, text, readonly } from '@nozbe/watermelondb/decorators';
 
 // Beneficiaries are read-only on mobile — pulled from the server, not created offline.
 // Create/update operations require network connectivity and go directly to the API.

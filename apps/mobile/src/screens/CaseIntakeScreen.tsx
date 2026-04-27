@@ -3,10 +3,11 @@ import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View,
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { QuickExitButton } from '../components/QuickExitButton';
+import { t } from '../i18n';
 import { createOfflineCase } from '../sync/SyncEngine';
 
-const VIOLENCE_TYPES = ['PHYSICAL', 'SEXUAL', 'EMOTIONAL', 'ECONOMIC', 'NEGLECT', 'TRAFFICKING'];
-const INTAKE_CHANNELS = ['FIELD_WORKER', 'HOTLINE', 'SELF_REFERRAL', 'COMMUNITY_LEADER', 'HEALTH_FACILITY'];
+const VIOLENCE_TYPES = ['PHYSICAL', 'SEXUAL', 'EMOTIONAL', 'ECONOMIC', 'NEGLECT', 'TRAFFICKING'] as const;
+const INTAKE_CHANNELS = ['FIELD_WORKER', 'HOTLINE', 'SELF_REFERRAL', 'COMMUNITY_LEADER', 'HEALTH_FACILITY'] as const;
 
 export function CaseIntakeScreen() {
   const insets = useSafeAreaInsets();
@@ -19,7 +20,7 @@ export function CaseIntakeScreen() {
 
   const handleNext = () => {
     if (step === 1 && !violenceType) {
-      Alert.alert('Required', 'Please select the type of violence reported');
+      Alert.alert(t('common.error'), t('case.violenceTypeRequired'));
       return;
     }
     setStep((s) => s + 1);
@@ -37,17 +38,14 @@ export function CaseIntakeScreen() {
         ...(incidentNotes ? { notes: incidentNotes } : {}),
         ...(perpetratorRelationship ? { perpetratorRelationship } : {}),
       });
-      Alert.alert(
-        'Saved offline',
-        'This case has been saved to your device and will sync automatically when connectivity is available.',
-      );
+      Alert.alert(t('case.savedOfflineTitle'), t('case.savedOfflineBody'));
       setStep(1);
       setViolenceType('');
       setIntakeChannel('');
       setIncidentNotes('');
       setPerpetratorRelationship('');
     } catch (err) {
-      Alert.alert('Save failed', err instanceof Error ? err.message : 'Unknown error');
+      Alert.alert(t('case.saveFailed'), err instanceof Error ? err.message : t('common.error'));
     } finally {
       setSaving(false);
     }
@@ -57,27 +55,27 @@ export function CaseIntakeScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <QuickExitButton />
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.title}>New Case</Text>
-        <Text style={styles.step}>Step {step} of 3</Text>
+        <Text style={styles.title}>{t('case.newCase')}</Text>
+        <Text style={styles.step}>{t('case.step', { current: step, total: 3 })}</Text>
 
         {step === 1 && (
           <View>
-            <Text style={styles.label}>Type of Violence *</Text>
+            <Text style={styles.label}>{t('case.violenceType')} *</Text>
             <View style={styles.options}>
-              {VIOLENCE_TYPES.map((t) => (
+              {VIOLENCE_TYPES.map((vt) => (
                 <TouchableOpacity
-                  key={t}
-                  style={[styles.option, violenceType === t && styles.optionSelected]}
-                  onPress={() => setViolenceType(t)}
+                  key={vt}
+                  style={[styles.option, violenceType === vt && styles.optionSelected]}
+                  onPress={() => setViolenceType(vt)}
                 >
-                  <Text style={[styles.optionText, violenceType === t && styles.optionTextSelected]}>
-                    {t.replace('_', ' ')}
+                  <Text style={[styles.optionText, violenceType === vt && styles.optionTextSelected]}>
+                    {t(`case.violenceTypes.${vt}`)}
                   </Text>
                 </TouchableOpacity>
               ))}
             </View>
 
-            <Text style={styles.label}>Intake Channel</Text>
+            <Text style={styles.label}>{t('case.intakeChannel')}</Text>
             <View style={styles.options}>
               {INTAKE_CHANNELS.map((c) => (
                 <TouchableOpacity
@@ -86,7 +84,7 @@ export function CaseIntakeScreen() {
                   onPress={() => setIntakeChannel(c)}
                 >
                   <Text style={[styles.optionText, intakeChannel === c && styles.optionTextSelected]}>
-                    {c.replace(/_/g, ' ')}
+                    {t(`case.intakeChannels.${c}`)}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -96,23 +94,21 @@ export function CaseIntakeScreen() {
 
         {step === 2 && (
           <View>
-            <Text style={styles.label}>Incident Details</Text>
-            <Text style={styles.hint}>
-              Record observable facts only. Do not record perpetrator names — only relationship category.
-            </Text>
+            <Text style={styles.label}>{t('case.incidentDetails')}</Text>
+            <Text style={styles.hint}>{t('case.incidentNotePrompt')}</Text>
             <TextInput
               style={styles.textarea}
               multiline
               numberOfLines={6}
-              placeholder="Describe the reported incident…"
+              placeholder={t('case.incidentPlaceholder')}
               textAlignVertical="top"
               value={incidentNotes}
               onChangeText={setIncidentNotes}
             />
-            <Text style={styles.label}>Perpetrator Relationship (if known)</Text>
+            <Text style={styles.label}>{t('case.perpetratorRelationship')}</Text>
             <TextInput
               style={styles.input}
-              placeholder="e.g. Intimate partner, Unknown"
+              placeholder={t('case.perpetratorPlaceholder')}
               value={perpetratorRelationship}
               onChangeText={setPerpetratorRelationship}
             />
@@ -121,27 +117,30 @@ export function CaseIntakeScreen() {
 
         {step === 3 && (
           <View>
-            <Text style={styles.label}>Review & Save</Text>
+            <Text style={styles.label}>{t('case.review')}</Text>
             <View style={styles.review}>
-              <Text style={styles.reviewRow}>Violence type: <Text style={styles.reviewValue}>{violenceType}</Text></Text>
-              <Text style={styles.reviewRow}>Channel: <Text style={styles.reviewValue}>{intakeChannel || '—'}</Text></Text>
+              <Text style={styles.reviewRow}>
+                {t('case.violenceType')}:{' '}
+                <Text style={styles.reviewValue}>{violenceType ? t(`case.violenceTypes.${violenceType}`) : '—'}</Text>
+              </Text>
+              <Text style={styles.reviewRow}>
+                {t('case.intakeChannel')}:{' '}
+                <Text style={styles.reviewValue}>{intakeChannel ? t(`case.intakeChannels.${intakeChannel}`) : '—'}</Text>
+              </Text>
             </View>
-            <Text style={styles.hint}>
-              This record will be stored encrypted on this device and synced when online.
-              All data access is logged.
-            </Text>
+            <Text style={styles.hint}>{t('case.encryptedNotice')}</Text>
           </View>
         )}
 
         <View style={styles.actions}>
           {step > 1 && (
             <TouchableOpacity style={styles.backButton} onPress={() => setStep((s) => s - 1)}>
-              <Text style={styles.backButtonText}>Back</Text>
+              <Text style={styles.backButtonText}>{t('common.back')}</Text>
             </TouchableOpacity>
           )}
           {step < 3 ? (
             <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
-              <Text style={styles.nextButtonText}>Next</Text>
+              <Text style={styles.nextButtonText}>{t('common.next')}</Text>
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
@@ -152,7 +151,7 @@ export function CaseIntakeScreen() {
               {saving ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.nextButtonText}>Save Offline</Text>
+                <Text style={styles.nextButtonText}>{t('case.saveOffline')}</Text>
               )}
             </TouchableOpacity>
           )}
