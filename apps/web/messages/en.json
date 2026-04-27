@@ -1,0 +1,78 @@
+{
+  "common": {
+    "appName": "Liberia GB MIS",
+    "ministry": "Ministry of Gender, Children and Social Protection",
+    "loading": "Loading…",
+    "error": "Something went wrong",
+    "retry": "Retry",
+    "save": "Save",
+    "cancel": "Cancel",
+    "back": "Back",
+    "next": "Next",
+    "logout": "Log out"
+  },
+  "nav": {
+    "overview": "Overview",
+    "cases": "Cases",
+    "beneficiaries": "Beneficiaries",
+    "indicators": "Indicators",
+    "sessions": "Community sessions",
+    "reports": "Reports",
+    "datasets": "Secondary data",
+    "admin": "Admin",
+    "users": "Users",
+    "audit": "Audit log"
+  },
+  "dashboard": {
+    "title": "Overview",
+    "subtitle": "Across the six LWEP counties",
+    "openCases": "Open cases",
+    "activeBeneficiaries": "Active beneficiaries",
+    "verifiedIndicators": "Verified indicators this quarter",
+    "pendingSync": "Pending sync from field"
+  },
+  "cases": {
+    "list": {
+      "title": "Cases",
+      "newCase": "New case",
+      "filterByCounty": "Filter by county",
+      "filterByStatus": "Filter by status",
+      "filterByPriority": "Filter by priority"
+    },
+    "status": {
+      "OPEN": "Open",
+      "IN_SERVICE": "In service",
+      "REFERRED": "Referred",
+      "CLOSED_SUCCESSFUL": "Closed — resolved",
+      "CLOSED_LOST_CONTACT": "Closed — lost contact",
+      "CLOSED_WITHDRAWN": "Closed — withdrawn"
+    },
+    "priority": {
+      "LOW": "Low",
+      "MEDIUM": "Medium",
+      "HIGH": "High",
+      "CRITICAL": "Critical"
+    }
+  },
+  "roles": {
+    "SUPER_ADMIN": "Super administrator",
+    "ADMIN": "Administrator",
+    "SUPERVISOR": "Supervisor",
+    "CASE_WORKER": "Case worker",
+    "DATA_ENTRY_CLERK": "Data entry clerk",
+    "ANALYST": "Analyst",
+    "VIEWER": "Viewer"
+  },
+  "auth": {
+    "login": "Log in",
+    "loggingIn": "Logging in…",
+    "loginPrompt": "Sign in with your MOGCSP account.",
+    "sessionExpired": "Your session has expired. Please sign in again."
+  },
+  "public": {
+    "title": "Liberia gender equality dashboard",
+    "subtitle": "Verified indicators from the GB MIS",
+    "dataNote": "Only VERIFIED indicators are published here. Counts under 5 are suppressed to protect privacy (k = 5).",
+    "footer": "Published by the Ministry of Gender, Children and Social Protection."
+  }
+}

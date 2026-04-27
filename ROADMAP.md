@@ -85,7 +85,7 @@ Each phase is organised into stages with an **acceptance gate** at the end. A ga
 - [x] **Mobile app**: WatermelonDB offline persistence with SQLite adapter; `GbvCaseModel`, `BeneficiaryModel`, `SyncRecordModel`; `SyncEngine` with pull (delta cursor) and push (batch upload, PENDING → SYNCED/FAILED); `CaseIntakeScreen` writing offline records; `useSyncStatus` hook for reactive pending count; biometric unlock; quick-exit control
 - [x] **Web admin**: user and role management; integration configuration; audit review; indicator catalog management; secondary datasets page
 - [x] **Public dashboard**: `GET /public/indicators` and `GET /public/counties` unauthenticated endpoints; Next.js ISR page at `/public/dashboard` with MOGCSP branding, framework-grouped indicator table, county breakdowns; k=5 data note in footer
-- [ ] **Localisation scaffolding**: English strings externalised; translation workflow ready for future languages
+- [x] **Localisation scaffolding**: web on `next-intl` with `apps/web/messages/en.json`; mobile on a lightweight `t()` helper with `apps/mobile/src/i18n/en.json`. Translation workflow + DPO sign-off requirement documented in `docs/i18n.md`
 - [x] **Comprehensive test coverage**: first slice landed (Vitest in apps/api + packages/auth + packages/indicators; Playwright + axe-core for the public dashboard; Schemathesis schema-level in CI). Coverage grows incrementally
 - [x] **Penetration test preparation**: hardening checklist + scope/ROE in `docs/pen-test/`
 

@@ -1,0 +1,70 @@
+{
+  "common": {
+    "appName": "GB MIS",
+    "loading": "Loading…",
+    "error": "Something went wrong",
+    "retry": "Retry",
+    "save": "Save",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "back": "Back",
+    "next": "Next",
+    "logout": "Log out"
+  },
+  "auth": {
+    "loginTitle": "Sign in",
+    "loginPrompt": "Sign in with your MOGCSP account.",
+    "login": "Sign in",
+    "loggingIn": "Signing in…"
+  },
+  "case": {
+    "newCase": "New case",
+    "step": "Step {current} of {total}",
+    "violenceType": "Type of violence",
+    "violenceTypeRequired": "Please select the type of violence reported",
+    "intakeChannel": "Intake channel",
+    "incidentDetails": "Incident details",
+    "incidentNotePrompt": "Record observable facts only. Do not record perpetrator names — only relationship category.",
+    "incidentPlaceholder": "Describe the reported incident…",
+    "perpetratorRelationship": "Perpetrator relationship (if known)",
+    "perpetratorPlaceholder": "e.g. Intimate partner, Unknown",
+    "review": "Review & save",
+    "saveOffline": "Save offline",
+    "savedOfflineTitle": "Saved offline",
+    "savedOfflineBody": "This case has been saved to your device and will sync automatically when connectivity is available.",
+    "saveFailed": "Save failed",
+    "encryptedNotice": "This record will be stored encrypted on this device and synced when online. All data access is logged.",
+    "violenceTypes": {
+      "PHYSICAL": "Physical",
+      "SEXUAL": "Sexual",
+      "EMOTIONAL": "Emotional",
+      "ECONOMIC": "Economic",
+      "NEGLECT": "Neglect",
+      "TRAFFICKING": "Trafficking"
+    },
+    "intakeChannels": {
+      "FIELD_WORKER": "Field worker",
+      "HOTLINE": "Hotline",
+      "SELF_REFERRAL": "Self-referral",
+      "COMMUNITY_LEADER": "Community leader",
+      "HEALTH_FACILITY": "Health facility"
+    }
+  },
+  "sync": {
+    "title": "Sync",
+    "pending": "{count, plural, =0 {No pending records} =1 {1 pending record} other {# pending records}}",
+    "failed": "{count, plural, =0 {No failed records} =1 {1 failed record} other {# failed records}}",
+    "lastSynced": "Last synced {time}",
+    "never": "never",
+    "syncNow": "Sync now",
+    "syncing": "Syncing…"
+  },
+  "secureStorage": {
+    "unlocking": "Unlocking secure storage…",
+    "unavailableTitle": "Local data store unavailable",
+    "unavailableHint": "Contact your supervisor. Reinstalling the app will erase any unsynced records on this device."
+  },
+  "quickExit": {
+    "label": "Exit"
+  }
+}

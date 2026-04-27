@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { SessionProvider } from 'next-auth/react';
+import { NextIntlClientProvider } from 'next-intl';
+import { getLocale, getMessages } from 'next-intl/server';
 
 import { auth } from '../auth';
 import './globals.css';
@@ -13,11 +15,13 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const session = await auth();
+  const [session, locale, messages] = await Promise.all([auth(), getLocale(), getMessages()]);
   return (
-    <html lang="en" className={inter.variable}>
+    <html lang={locale} className={inter.variable}>
       <body className="min-h-screen bg-background font-sans antialiased">
-        <SessionProvider session={session}>{children}</SessionProvider>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <SessionProvider session={session}>{children}</SessionProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );
