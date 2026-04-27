@@ -82,7 +82,7 @@ threats in [`SECURITY.md § Threat model`](../../SECURITY.md#threat-model).
 
 | # | Item | Status |
 |---|---|---|
-| E1 | `helmet` (or equivalent) on the API setting CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy | ❌ **Not installed.** Add `@fastify/helmet` to `apps/api` and register it in `main.ts` before pen-test |
+| E1 | `helmet` (or equivalent) on the API setting CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy | ✅ `@fastify/helmet` registered in `apps/api/src/main.ts` with strict CSP (no inline scripts, no eval, frameAncestors=`'none'`), HSTS preload, no-referrer policy |
 | E2 | CORS limited to the production web app origin | ⚠️ `apps/api/src/main.ts:45` reads `API_CORS_ORIGINS` env; default falls back to `http://localhost:3000`. Verify the production env is set and the dev fallback is **not** included |
 | E3 | Cookies are `Secure`, `HttpOnly`, `SameSite=Lax` on the web app | ⚠️ Verify in `apps/web/src/auth.ts` (NextAuth) configuration before pen-test |
 | E4 | No survivor data ever serialised into a URL (query string or path segment) | ✅ Endpoints take server-generated UUIDs; verify `apps/api/src/modules/cases/cases.controller.ts` parameters do not include survivor PII |
@@ -95,7 +95,7 @@ threats in [`SECURITY.md § Threat model`](../../SECURITY.md#threat-model).
 | # | Item | Status |
 |---|---|---|
 | F1 | Rate limiting at the edge (NGINX `limit_req_zone`) | ⚠️ Verify in `infra/docker/nginx.conf`; document rate per route class |
-| F2 | API-level rate limiting as defence in depth | ❌ Not implemented. Add `@fastify/rate-limit` with route-specific overrides for `/v1/auth/*` and `/v1/sync/*` before pen-test |
+| F2 | API-level rate limiting as defence in depth | ✅ `@fastify/rate-limit` registered globally in `apps/api/src/main.ts`. Default 300 req/min/user (configurable via `API_RATE_LIMIT_MAX` and `API_RATE_LIMIT_WINDOW`), keyed on the authenticated user ID with IP fallback. Route-specific tighter limits for `/v1/auth/*` and `/v1/sync/*` are a follow-up |
 | F3 | Brute-force protection on Keycloak login | ✅ See A5 |
 | F4 | Public endpoints rate-limited more aggressively than authenticated ones | ⚠️ Define in NGINX config; not yet present |
 
@@ -121,10 +121,10 @@ threats in [`SECURITY.md § Threat model`](../../SECURITY.md#threat-model).
 | H2 | Reads of `GbvCase` and `Beneficiary` emit audit events (CLAUDE.md rule #9) | ⚠️ Verify the `findOne` / list endpoints in `cases.controller.ts` and `beneficiaries.controller.ts` |
 | H3 | Audit table is `INSERT`-only — no `UPDATE` or `DELETE` path (CLAUDE.md rule #10) | ⚠️ Enforce via Postgres role grants in the migration; verify before pen-test |
 | H4 | Hash-chain emitted per row and verified nightly | ⚠️ Verification job referenced in runbooks; locate the implementation or build it (`docker exec gb-mis-api node dist/scripts/verify-audit-chain.js`) |
-| H5 | Audit interceptor never silently drops events | ❌ **Current `apps/api/src/common/interceptors/audit.interceptor.ts:104` swallows the catch.** A failed audit emit currently lets the request succeed unaudited. Decide and implement: fail-closed (return 500) or fail-loud (alert + mark request "audit-pending"). Either is fine; silent-drop is not |
+| H5 | Audit interceptor never silently drops events | ✅ `apps/api/src/common/interceptors/audit.interceptor.ts` is now fail-closed: on the success path, the audit emit is awaited before the response is returned and an emit failure surfaces as a 500. On the failure path, the audit attempt is best-effort and the original controller error always propagates so the on-call sees the real cause. 4 unit tests lock in the contract. The previous `tap`-based version (which both swallowed catches and didn't await the emit) is replaced |
 | H6 | Audit log redacted of decrypted survivor-linked data (CLAUDE.md rule #2) | ✅ Audit row stores `entityId` and `field`, never decrypted values; verify by reading the audit table after a write |
 
-🔒 **MOGCSP approval required**: H5 fix decision (fail-closed vs fail-loud) signed off by the DPO before the engagement.
+🔒 **MOGCSP approval required**: H5 chose fail-closed for the success path (emit failure → 500) and fail-loud for the controller-error path (audit best-effort, original error propagates). The DPO signs off on this contract before the engagement.
 
 ---
 

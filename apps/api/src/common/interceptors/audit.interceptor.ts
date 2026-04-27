@@ -7,12 +7,11 @@ import type {
   ExecutionContext,
   NestInterceptor} from '@nestjs/common';
 import {
-  Injectable
+  Injectable, Logger
 } from '@nestjs/common';
 import type { Reflector } from '@nestjs/core';
 import type { FastifyRequest } from 'fastify';
-import type { Observable} from 'rxjs';
-import { tap } from 'rxjs';
+import { Observable } from 'rxjs';
 
 import type { AuthenticatedUser } from '../types/authenticated-user';
 
@@ -26,8 +25,22 @@ export const AuditEvent = (action: AuditAction, resource: string): MethodDecorat
     return descriptor;
   };
 
+/**
+ * Audit interceptor — emits an AuditEvent before the response is returned.
+ *
+ * Closes hardening-checklist H5. Per CLAUDE.md rule #8 ("every mutating
+ * endpoint emits an audit event. No exceptions.") the emission is
+ * fail-closed: if the database insert into audit_log fails, the request
+ * itself fails with 500. A mutation that succeeds without being audited
+ * is a worse outcome than a request the client retries.
+ *
+ * The previous version used `tap` (non-blocking) and swallowed the catch
+ * silently — both are now fixed.
+ */
 @Injectable()
 export class AuditInterceptor implements NestInterceptor {
+  private readonly logger = new Logger(AuditInterceptor.name);
+
   constructor(private readonly reflector: Reflector) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
@@ -50,11 +63,21 @@ export class AuditInterceptor implements NestInterceptor {
     const resourceId = req.params['id'] ?? null;
     const requestId = randomUUID();
 
-    return next.handle().pipe(
-      tap({
-        next: async () => {
-          if (!user) return;
-          await this.emit({
+    // Subscribe to the upstream once so the success and failure paths each
+    // have a single audit attempt — using mergeMap + catchError would route
+    // a thrown audit error from the success path back into catchError and
+    // emit twice. That's both wrong (two audit rows for one request) and
+    // misleading (the second row would record success=false against an
+    // operation whose only failure was the audit itself).
+    return new Observable<unknown>((subscriber) => {
+      const upstream = next.handle().subscribe({
+        next: (response) => {
+          if (!user) {
+            subscriber.next(response);
+            subscriber.complete();
+            return;
+          }
+          this.emit({
             actorUserId: user.id,
             action,
             entityType: resource,
@@ -62,11 +85,25 @@ export class AuditInterceptor implements NestInterceptor {
             actorIp: req.ip,
             requestId,
             success: true,
-          });
+          })
+            .then(() => {
+              subscriber.next(response);
+              subscriber.complete();
+            })
+            .catch((auditErr: unknown) => {
+              // Fail-closed: surface the audit error to the client. The
+              // controller's mutation must already be committed by the
+              // time we get here; rolling back is out of the interceptor's
+              // reach. The 500 prompts the operator to investigate.
+              subscriber.error(auditErr);
+            });
         },
-        error: async () => {
-          if (!user) return;
-          await this.emit({
+        error: (err: unknown) => {
+          if (!user) {
+            subscriber.error(err);
+            return;
+          }
+          this.emit({
             actorUserId: user.id,
             action,
             entityType: resource,
@@ -74,10 +111,22 @@ export class AuditInterceptor implements NestInterceptor {
             actorIp: req.ip,
             requestId,
             success: false,
-          });
+          })
+            .catch((auditErr: unknown) => {
+              // Best-effort on the failure path. Don't mask the original
+              // controller error — that's the more useful signal for the
+              // client and the on-call.
+              this.logger.error(
+                `Failure-path audit emission failed; propagating the original controller error`,
+                auditErr instanceof Error ? auditErr.stack : String(auditErr),
+              );
+            })
+            .finally(() => subscriber.error(err));
         },
-      }),
-    );
+      });
+
+      return () => upstream.unsubscribe();
+    });
   }
 
   private async emit(data: {
@@ -89,6 +138,10 @@ export class AuditInterceptor implements NestInterceptor {
     requestId: string;
     success: boolean;
   }): Promise<void> {
+    // Fail-closed: any database error here propagates. The caller's request
+    // returns 500 with a clear log line. Operationally this requires the
+    // audit_log table to be available; that's exactly the point — a system
+    // that can't audit must not accept survivor-data mutations.
     try {
       await prisma.auditEvent.create({
         data: {
@@ -101,8 +154,14 @@ export class AuditInterceptor implements NestInterceptor {
           success: data.success,
         },
       });
-    } catch {
-      // Audit failures must never crash the request — log and continue.
+    } catch (err) {
+      this.logger.error(
+        `Audit emission failed for ${data.action} on ${data.entityType}${
+          data.entityId ? ` (${data.entityId})` : ''
+        } by ${data.actorUserId} — failing the request closed`,
+        err instanceof Error ? err.stack : String(err),
+      );
+      throw err;
     }
   }
 }

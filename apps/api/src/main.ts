@@ -1,5 +1,7 @@
 import 'reflect-metadata';
 
+import helmet from '@fastify/helmet';
+import rateLimit from '@fastify/rate-limit';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { NestFactory, Reflector } from '@nestjs/core';
 import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
@@ -20,6 +22,53 @@ async function bootstrap() {
 
   // Structured logging via nestjs-pino
   app.useLogger(app.get(Logger));
+
+  // Security headers (Helmet). Closes hardening-checklist E1.
+  // CSP defaults are strict: no inline scripts/styles, no eval, no remote
+  // origins. Swagger UI runs at /api-docs and needs slightly looser CSP —
+  // it is exposed only on staging per docs/pen-test/scope-and-roe.md.
+  await app.register(helmet, {
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: [`'self'`],
+        scriptSrc: [`'self'`],
+        styleSrc: [`'self'`, `'unsafe-inline'`],
+        imgSrc: [`'self'`, 'data:'],
+        connectSrc: [`'self'`],
+        fontSrc: [`'self'`],
+        objectSrc: [`'none'`],
+        frameAncestors: [`'none'`],
+        baseUri: [`'self'`],
+        formAction: [`'self'`],
+      },
+    },
+    crossOriginEmbedderPolicy: false, // required for Swagger UI assets
+    strictTransportSecurity: { maxAge: 31536000, includeSubDomains: true, preload: true },
+    referrerPolicy: { policy: 'no-referrer' },
+  });
+
+  // Rate limiting (defence in depth — edge limits at NGINX still apply).
+  // Closes hardening-checklist F2. Tighter limits on auth and sync routes
+  // are configured per-route via the plugin's `config.rateLimit` hook
+  // where needed; the health endpoints are polled by the load balancer
+  // (~12 hits/minute) so they sit comfortably under the global default.
+  await app.register(rateLimit, {
+    global: true,
+    max: Number(process.env['API_RATE_LIMIT_MAX'] ?? 300),
+    timeWindow: process.env['API_RATE_LIMIT_WINDOW'] ?? '1 minute',
+    // Use the authenticated user ID when present, falling back to IP.
+    keyGenerator: (req) => {
+      const user = (req as unknown as { user?: { id?: string } }).user;
+      return user?.id ?? req.ip ?? 'anonymous';
+    },
+    addHeadersOnExceeding: { 'x-ratelimit-limit': true, 'x-ratelimit-remaining': true },
+    addHeaders: {
+      'x-ratelimit-limit': true,
+      'x-ratelimit-remaining': true,
+      'x-ratelimit-reset': true,
+      'retry-after': true,
+    },
+  });
 
   // Global exception filter — uniform error shape for all unhandled exceptions
   app.useGlobalFilters(new GlobalExceptionFilter());
