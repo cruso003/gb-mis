@@ -224,10 +224,12 @@ The Inception decision bundles hosting and a matching security runbook.
 
 ## Incident response
 
+The full breach-notification timeline (1 h / 2 h / 8 h / 24 h / 72 h / without-undue-delay) lives in [`COMPLIANCE.md § Breach notification`](./COMPLIANCE.md#breach-notification) and is the authoritative reference. The bullets here are a summary; on conflict, COMPLIANCE.md wins.
+
 ### Playbook structure
 
-Every incident type has a playbook in `docs/runbooks/incident/`. The playbooks cover:
-- **Confirmed data breach involving survivor data** — highest severity; playbook specifies Deputy Minister notification within 2 hours, World Bank PMU within 24 hours
+Every incident type has a playbook in `docs/runbooks/`. The playbooks cover:
+- **Confirmed data breach involving survivor data** — highest severity; per `COMPLIANCE.md`: 1 h to ICT Director, 2 h to DPO + Deputy Minister + LWEP PMU, 8 h preliminary written report, 24 h to World Bank PMU, 72 h to the competent data protection authority if rights-impacting
 - **Suspected credential compromise**
 - **DDoS**
 - **DHIS2 / REALISE / LISGIS integration outage**

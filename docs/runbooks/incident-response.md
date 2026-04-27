@@ -37,20 +37,24 @@ This is the highest-severity incident type. The threshold for "confirmed" is: th
 
 If the evidence is suggestive but unconfirmed, run section B (suspected credential compromise) in parallel until the picture is clearer.
 
-### A.1 Notification timeline (per `SECURITY.md § Incident response`)
+### A.1 Notification timeline (per `COMPLIANCE.md § Breach notification`)
 
-These clocks start at incident **confirmation**, not detection.
+Two clocks. The **detection** clock starts the moment the incident is detected; the **awareness** clock starts when the incident is confirmed as a likely-rights-impacting breach (typically the same as detection for clear-cut cases, later for cases that need investigation to confirm).
 
 | Within | Notify | Mechanism |
 | --- | --- | --- |
-| Immediate | MOGCSP ICT Director | Phone + incident channel |
-| 2 hours | Deputy Minister for Gender | Direct phone call, then written follow-up |
-| 2 hours | DPO | Phone + incident channel |
-| 24 hours | World Bank PMU | Written notification, severity-high template |
+| 1 hour of **detection** | MOGCSP ICT Director; incident commander opens incident, preserves evidence, begins containment | Phone + incident channel |
+| 2 hours of **detection** | DPO, Deputy Minister for Gender, LWEP PMU | Direct phone calls, then written follow-up |
+| 8 hours of **detection** | Preliminary written report — what, when, scope, initial impact estimate — to DPO + Deputy Minister + LWEP PMU | Written, MOGCSP document system |
+| 24 hours of **detection** | World Bank PMU (severity-high+ confirmed incidents per `SECURITY.md § Communications`) | Written, severity-high template |
+| 72 hours of **awareness** | Competent data protection authority (GDPR Art. 33 baseline, applied as Liberia's Data Protection guidelines per `COMPLIANCE.md`) — only if the breach is likely to result in risk to rights and freedoms | Written, regulator template |
+| Without undue delay (after MOGCSP approval) | Affected individuals — only when the breach is likely to result in **high** risk; with advice on protective measures, in language they understand | Through the survivor's existing case worker, not a system message |
 
-> ⚠️ **MOGCSP approval required** for the timeline of survivor-affected-individual notification. The DPO directs whether and when this happens. **Do not contact affected individuals before MOGCSP leadership has been informed and a remediation plan is in place** (per `SECURITY.md § Communications`).
+> ⚠️ **MOGCSP approval required** for any breach notification leaving the ministry. Per `COMPLIANCE.md § Breach notification`, "no breach notification is ever sent on behalf of MOGCSP without the Deputy Minister's approval." The DPO drafts; the Deputy Minister authorises.
 >
-> ⚠️ **Open question — confirm at Inception**: notification to a Liberian external authority (data protection regulator, if one is designated under Liberian law) is **not** specified in the current `SECURITY.md`. The DPO must confirm during Inception whether such an authority exists, what its statutory clock is, and update this runbook accordingly. Until confirmed, the on-call engineer notifies the DPO who then determines external regulatory exposure.
+> ⚠️ **MOGCSP approval required** for the timeline and content of survivor-affected-individual notification. The DPO directs whether and when this happens. **Do not contact affected individuals before MOGCSP leadership has been informed and a remediation plan is in place** (per `SECURITY.md § Communications`).
+>
+> **External authority — confirm at Inception**: the "competent data protection authority" referenced above is the regulator designated under Liberia's Data Protection guidelines / Data Protection Act in force at deployment (per `COMPLIANCE.md` § Frameworks). The DPO confirms the named authority and its filing channel during Inception and updates the regulator-notification template in the MOGCSP document system. Until confirmed, the 72-hour notification is drafted and held with the DPO pending channel confirmation — the clock does not pause.
 
 ### A.2 Containment
 
@@ -236,7 +240,8 @@ Within 10 working days of incident closure, regardless of severity:
 ```
 DETECT → ANNOUNCE → PRESERVE → IDENTIFY TYPE → RUN PLAYBOOK
 
-A. Survivor-data breach   →  ICT Director, then 2 h Deputy + DPO, 24 h WB PMU
+A. Survivor-data breach   →  1 h ICT Director; 2 h Deputy + DPO + LWEP PMU;
+                              8 h written report; 24 h WB PMU; 72 h regulator (if rights-impacting)
 B. Credential compromise  →  Lock account, force MFA re-enrol, escalate to A if sensitive access occurred
 C. Lost / stolen device   →  Mark lost in admin, revoke session, trust SQLCipher
 D. Internal disclosure    →  Recall, fix path, DPO assesses scope, train
