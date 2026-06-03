@@ -3,6 +3,8 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import { auth } from '../../../../../auth';
+import { ResubmitPanel } from '../../../../../components/cases/ResubmitPanel';
+import { SupervisorReviewPanel } from '../../../../../components/cases/SupervisorReviewPanel';
 import { apiClient } from '../../../../../lib/api-client';
 
 interface Incident {
@@ -35,10 +37,16 @@ interface CaseDetail {
   intakeChannel: string;
   intakeDate: string;
   supervisorReviewedAt: string | null;
+  submittedForReviewAt: string | null;
+  reviewNotes: string | null;
+  reviewCount: number;
+  intakeByUserId: string;
   closedAt: string | null;
   createdAt: string;
   survivor: { id: string; beneficiaryCode: string } | null;
   orgUnit: { name: string; code: string };
+  reviewer: { id: string; displayName: string } | null;
+  intakedBy: { id: string; displayName: string } | null;
   incidents: Incident[];
   servicesProvided: ServiceProvided[];
   referrals: Referral[];
@@ -51,6 +59,8 @@ const PRIORITY_BADGE: Record<string, string> = {
 };
 
 const STATUS_BADGE: Record<string, string> = {
+  PENDING_REVIEW: 'bg-amber-100 text-amber-800',
+  RETURNED_FOR_REVISION: 'bg-rose-100 text-rose-800',
   OPEN: 'bg-blue-100 text-blue-700',
   IN_SERVICE: 'bg-green-100 text-green-700',
   REFERRED: 'bg-yellow-100 text-yellow-700',
@@ -108,6 +118,22 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ id:
           </span>
         </div>
       </div>
+
+      {gbvCase.status === 'PENDING_REVIEW' && (
+        <SupervisorReviewPanel
+          caseId={gbvCase.id}
+          intakeByName={gbvCase.intakedBy?.displayName ?? null}
+        />
+      )}
+
+      {gbvCase.status === 'RETURNED_FOR_REVISION' && (
+        <ResubmitPanel
+          caseId={gbvCase.id}
+          reviewNotes={gbvCase.reviewNotes}
+          reviewerName={gbvCase.reviewer?.displayName ?? null}
+          reviewedAt={gbvCase.supervisorReviewedAt}
+        />
+      )}
 
       {/* Case metadata */}
       <section className="rounded-xl border border-border bg-card p-6 shadow-sm">

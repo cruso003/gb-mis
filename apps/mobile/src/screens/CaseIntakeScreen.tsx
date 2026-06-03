@@ -129,6 +129,9 @@ export function CaseIntakeScreen() {
               </Text>
             </View>
             <Text style={styles.hint}>{t('case.encryptedNotice')}</Text>
+            <Text style={[styles.hint, { marginTop: 8, fontStyle: 'italic' }]}>
+              {t('case.willGoToReview')}
+            </Text>
           </View>
         )}
 

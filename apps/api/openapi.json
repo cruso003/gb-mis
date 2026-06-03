@@ -672,7 +672,7 @@
       },
       "post": {
         "operationId": "CasesController_create",
-        "summary": "Open a new GBV case",
+        "summary": "Open a new GBV case — enters PENDING_REVIEW automatically",
         "parameters": [],
         "responses": {
           "201": {
@@ -684,6 +684,21 @@
                 }
               }
             }
+          }
+        },
+        "tags": [
+          "cases"
+        ]
+      }
+    },
+    "/v1/cases/review-queue": {
+      "get": {
+        "operationId": "CasesController_reviewQueue",
+        "summary": "Supervisor review queue — PENDING_REVIEW cases in scope",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
           }
         },
         "tags": [
@@ -725,7 +740,7 @@
     "/v1/cases/{id}/services": {
       "post": {
         "operationId": "CasesController_addService",
-        "summary": "Record a service delivered on this case",
+        "summary": "Record a service delivered on this case (blocked while in review)",
         "parameters": [
           {
             "name": "id",
@@ -749,7 +764,7 @@
     "/v1/cases/{id}/referrals": {
       "post": {
         "operationId": "CasesController_createReferral",
-        "summary": "Create a referral for this case",
+        "summary": "Create a referral for this case (blocked while in review)",
         "parameters": [
           {
             "name": "id",
@@ -770,10 +785,10 @@
         ]
       }
     },
-    "/v1/cases/{id}/review": {
+    "/v1/cases/{id}/approve": {
       "post": {
-        "operationId": "CasesController_review",
-        "summary": "Supervisor approve or return a case",
+        "operationId": "CasesController_approve",
+        "summary": "Supervisor approves a PENDING_REVIEW case → OPEN",
         "parameters": [
           {
             "name": "id",
@@ -786,7 +801,76 @@
         ],
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "cases"
+        ]
+      }
+    },
+    "/v1/cases/{id}/return": {
+      "post": {
+        "operationId": "CasesController_returnForRevision",
+        "summary": "Supervisor returns a PENDING_REVIEW case for revision (notes required)",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "cases"
+        ]
+      }
+    },
+    "/v1/cases/{id}/resubmit": {
+      "post": {
+        "operationId": "CasesController_resubmit",
+        "summary": "Case worker resubmits a RETURNED_FOR_REVISION case for review",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
           }
         },
         "tags": [

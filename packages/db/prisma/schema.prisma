@@ -111,6 +111,8 @@ enum SessionType {
 }
 
 enum CaseStatus {
+  PENDING_REVIEW
+  RETURNED_FOR_REVISION
   OPEN
   IN_SERVICE
   REFERRED
@@ -247,6 +249,10 @@ enum AuditAction {
   REPORT_GENERATE
   DATA_SUBJECT_REQUEST
   ERASURE_APPROVE
+  CASE_SUBMIT_FOR_REVIEW
+  CASE_APPROVE
+  CASE_RETURN_FOR_REVISION
+  CASE_RESUBMIT_FOR_REVIEW
 }
 
 enum SyncStatus {
@@ -278,6 +284,7 @@ model User {
   casesWorking     GbvCase[]          @relation("AssignedCaseWorker")
   casesSupervising GbvCase[]          @relation("AssignedSupervisor")
   casesCreated     GbvCase[]          @relation("CaseIntakedBy")
+  casesReviewed    GbvCase[]          @relation("CaseReviewer")
   auditEvents      AuditEvent[]       @relation("ActorUser")
 
   @@map("users")
@@ -550,10 +557,17 @@ model GbvCase {
   intakeByUserId        String                @db.Uuid
   firstIncidentDate     DateTime?             @db.Date
   mostRecentIncidentDate DateTime?            @db.Date
-  status                CaseStatus            @default(OPEN)
+  status                CaseStatus            @default(PENDING_REVIEW)
   priority              CasePriority          @default(ROUTINE)
   assignedCaseWorkerId  String?               @db.Uuid
   assignedSupervisorId  String?               @db.Uuid
+  // Supervisor-review workflow (per TOR). The case carries the latest
+  // review only; the full chronological history is reconstructable from
+  // audit_log entries with entity_type='GbvCase'.
+  reviewerId            String?               @db.Uuid
+  reviewNotes           String?
+  submittedForReviewAt  DateTime?             @db.Timestamptz
+  reviewCount           Int                   @default(0)
   supervisorReviewedAt  DateTime?             @db.Timestamptz
   closedAt              DateTime?             @db.Timestamptz
   clientEventId         String?               @unique
@@ -566,6 +580,7 @@ model GbvCase {
   intakedBy             User                  @relation("CaseIntakedBy", fields: [intakeByUserId], references: [id])
   assignedCaseWorker    User?                 @relation("AssignedCaseWorker", fields: [assignedCaseWorkerId], references: [id])
   assignedSupervisor    User?                 @relation("AssignedSupervisor", fields: [assignedSupervisorId], references: [id])
+  reviewer              User?                 @relation("CaseReviewer", fields: [reviewerId], references: [id])
   incidents             Incident[]
   servicesProvided      ServiceProvided[]
   referrals             Referral[]

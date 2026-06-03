@@ -139,6 +139,10 @@ export class SyncService {
       const caseNumber = `SYNC-${record.clientEventId.slice(-8).toUpperCase()}`;
       await prisma.gbvCase.upsert({
         where: { clientEventId: record.clientEventId },
+        // Mobile-created cases enter the supervisor review queue just like
+        // web-created ones. status falls through the Prisma @default
+        // (PENDING_REVIEW) but submittedForReviewAt has to be set
+        // explicitly so the queue ordering is correct.
         create: {
           caseNumber,
           clientEventId: record.clientEventId,
@@ -147,6 +151,7 @@ export class SyncService {
           intakeChannel: (payload['intakeChannel'] as never) ?? 'COMMUNITY',
           intakeDate: new Date(),
           intakeByUserId: actor.id,
+          submittedForReviewAt: new Date(),
         },
         update: {},
       });

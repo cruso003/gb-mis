@@ -39,7 +39,25 @@
       "filterByStatus": "Filter by status",
       "filterByPriority": "Filter by priority"
     },
+    "review": {
+      "queueTitle": "Review queue",
+      "queueEmpty": "The queue is empty. New intakes will appear here automatically.",
+      "approve": "Approve",
+      "return": "Return for revision",
+      "approving": "Approving…",
+      "returning": "Returning…",
+      "notesLabel": "Notes (required when returning)",
+      "notesRequiredOnReturn": "Notes are required when returning a case for revision.",
+      "ownIntakeBlocked": "You cannot approve a case you entered yourself.",
+      "resubmit": "Resubmit for review",
+      "resubmitting": "Resubmitting…",
+      "returnedTitle": "Returned for revision",
+      "returnedBy": "by {name}",
+      "supervisorRequired": "Supervisor review required"
+    },
     "status": {
+      "PENDING_REVIEW": "Pending review",
+      "RETURNED_FOR_REVISION": "Returned for revision",
       "OPEN": "Open",
       "IN_SERVICE": "In service",
       "REFERRED": "Referred",

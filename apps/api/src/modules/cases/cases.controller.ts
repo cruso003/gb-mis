@@ -19,6 +19,12 @@ import { CasesService } from './cases.service';
 import { AddServiceSchema, type AddServiceDto } from './dto/add-service.dto';
 import { CreateCaseSchema, type CreateCaseDto } from './dto/create-case.dto';
 import { CreateReferralSchema, type CreateReferralDto } from './dto/create-referral.dto';
+import {
+  ApproveCaseSchema,
+  type ApproveCaseDto,
+  ReturnCaseSchema,
+  type ReturnCaseDto,
+} from './dto/review-case.dto';
 
 @ApiTags('cases')
 @Controller('cases')
@@ -44,6 +50,23 @@ export class CasesController {
     });
   }
 
+  @Get('review-queue')
+  @RequirePermission('CASE_SUPERVISOR_REVIEW')
+  @AuditEvent('READ', 'GbvCase')
+  @ApiOperation({
+    summary: 'Supervisor review queue — PENDING_REVIEW cases in scope',
+  })
+  reviewQueue(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Query('page') page = 1,
+    @Query('limit') limit = 20,
+  ) {
+    return this.casesService.reviewQueue(actor, {
+      page: Number(page),
+      limit: Number(limit),
+    });
+  }
+
   @Get(':id')
   @RequirePermission('CASE_READ')
   @AuditEvent('READ', 'GbvCase')
@@ -57,8 +80,10 @@ export class CasesController {
 
   @Post()
   @RequirePermission('CASE_CREATE')
-  @AuditEvent('CREATE', 'GbvCase')
-  @ApiOperation({ summary: 'Open a new GBV case' })
+  @AuditEvent('CASE_SUBMIT_FOR_REVIEW', 'GbvCase')
+  @ApiOperation({
+    summary: 'Open a new GBV case — enters PENDING_REVIEW automatically',
+  })
   create(
     @Body(new ZodValidationPipe(CreateCaseSchema)) dto: CreateCaseDto,
     @CurrentUser() actor: AuthenticatedUser,
@@ -69,7 +94,9 @@ export class CasesController {
   @Post(':id/services')
   @RequirePermission('CASE_UPDATE')
   @AuditEvent('CREATE', 'CaseService')
-  @ApiOperation({ summary: 'Record a service delivered on this case' })
+  @ApiOperation({
+    summary: 'Record a service delivered on this case (blocked while in review)',
+  })
   addService(
     @Param('id', ParseUUIDPipe) id: string,
     @Body(new ZodValidationPipe(AddServiceSchema)) dto: AddServiceDto,
@@ -81,7 +108,9 @@ export class CasesController {
   @Post(':id/referrals')
   @RequirePermission('CASE_UPDATE')
   @AuditEvent('CREATE', 'CaseReferral')
-  @ApiOperation({ summary: 'Create a referral for this case' })
+  @ApiOperation({
+    summary: 'Create a referral for this case (blocked while in review)',
+  })
   createReferral(
     @Param('id', ParseUUIDPipe) id: string,
     @Body(new ZodValidationPipe(CreateReferralSchema)) dto: CreateReferralDto,
@@ -90,16 +119,43 @@ export class CasesController {
     return this.casesService.createReferral(id, dto, actor);
   }
 
-  @Post(':id/review')
+  @Post(':id/approve')
   @RequirePermission('CASE_SUPERVISOR_REVIEW')
-  @AuditEvent('UPDATE', 'GbvCase')
-  @ApiOperation({ summary: 'Supervisor approve or return a case' })
-  review(
+  @AuditEvent('CASE_APPROVE', 'GbvCase')
+  @ApiOperation({ summary: 'Supervisor approves a PENDING_REVIEW case → OPEN' })
+  approve(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() body: { decision: 'APPROVED' | 'RETURNED'; notes: string },
+    @Body(new ZodValidationPipe(ApproveCaseSchema)) dto: ApproveCaseDto,
     @CurrentUser() actor: AuthenticatedUser,
   ) {
-    return this.casesService.supervisorReview(id, body.decision, actor);
+    return this.casesService.approve(id, dto, actor);
+  }
+
+  @Post(':id/return')
+  @RequirePermission('CASE_SUPERVISOR_REVIEW')
+  @AuditEvent('CASE_RETURN_FOR_REVISION', 'GbvCase')
+  @ApiOperation({
+    summary: 'Supervisor returns a PENDING_REVIEW case for revision (notes required)',
+  })
+  returnForRevision(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body(new ZodValidationPipe(ReturnCaseSchema)) dto: ReturnCaseDto,
+    @CurrentUser() actor: AuthenticatedUser,
+  ) {
+    return this.casesService.returnForRevision(id, dto, actor);
+  }
+
+  @Post(':id/resubmit')
+  @RequirePermission('CASE_RESUBMIT_FOR_REVIEW')
+  @AuditEvent('CASE_RESUBMIT_FOR_REVIEW', 'GbvCase')
+  @ApiOperation({
+    summary: 'Case worker resubmits a RETURNED_FOR_REVISION case for review',
+  })
+  resubmit(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() actor: AuthenticatedUser,
+  ) {
+    return this.casesService.resubmitForReview(id, actor);
   }
 
   @Post(':id/close')

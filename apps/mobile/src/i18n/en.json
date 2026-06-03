@@ -34,6 +34,10 @@
     "savedOfflineBody": "This case has been saved to your device and will sync automatically when connectivity is available.",
     "saveFailed": "Save failed",
     "encryptedNotice": "This record will be stored encrypted on this device and synced when online. All data access is logged.",
+    "willGoToReview": "After sync, this case will enter the supervisor review queue at your county office. Service entries are unlocked only after the supervisor approves.",
+    "statusPendingReview": "Pending review",
+    "statusReturnedForRevision": "Returned for revision",
+    "statusOpen": "Open",
     "violenceTypes": {
       "PHYSICAL": "Physical",
       "SEXUAL": "Sexual",

@@ -12,6 +12,7 @@ import {
   LayoutDashboard,
   CalendarDays,
   Database,
+  ClipboardCheck,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -20,6 +21,7 @@ const NAV_ITEMS = [
   { href: '/dashboard', label: 'Overview', icon: LayoutDashboard, exact: true },
   { href: '/dashboard/indicators', label: 'Indicators', icon: BarChart3 },
   { href: '/dashboard/cases', label: 'Cases', icon: FolderOpen },
+  { href: '/dashboard/cases/review-queue', label: 'Review queue', icon: ClipboardCheck },
   { href: '/dashboard/beneficiaries', label: 'Beneficiaries', icon: Users },
   { href: '/dashboard/sessions', label: 'Sessions', icon: CalendarDays },
   { href: '/dashboard/datasets', label: 'Secondary Data', icon: Database },
