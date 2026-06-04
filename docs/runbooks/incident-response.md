@@ -81,7 +81,7 @@ Two clocks. The **detection** clock starts the moment the incident is detected; 
    - Should the case be reassigned or escalated? Should the survivor be re-contacted by their regular case worker?
 4. **Hash-chain check.** Verify the audit chain is intact across the incident window:
    ```
-   docker exec gb-mis-api node dist/scripts/verify-audit-chain.js --since '2 hours ago'
+   docker exec gb-mis-api node scripts/verify-audit-chain.cjs --since '2 hours ago'
    ```
    A break here means the audit log itself may have been tampered with — escalate immediately.
 

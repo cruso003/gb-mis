@@ -39,3 +39,35 @@ export const auditEmitLatency = meter.createHistogram('gbmis_audit_emit_latency_
   description: 'Latency of audit_log INSERT operations',
   unit: 's',
 });
+
+/**
+ * Audit hash-chain verification — counts every run of the nightly
+ * chain verifier (and on-demand runs from the CLI script). The
+ * `outcome` attribute is one of {intact, broken, error}. The Grafana
+ * audit-health dashboard pages the on-call when the `broken` series
+ * goes non-zero — that means tamper-evidence has detected something.
+ */
+export const auditChainVerifyCounter = meter.createCounter('gbmis_audit_chain_verify_total', {
+  description: 'Audit chain verification runs, labelled by outcome',
+});
+
+/**
+ * Total broken links found across all verification runs. A sustained
+ * non-zero rate is a class-A signal per docs/runbooks/incident-response.md
+ * (the audit log may have been tampered with).
+ */
+export const auditChainBreaksCounter = meter.createCounter('gbmis_audit_chain_breaks_total', {
+  description: 'Broken audit-chain links found by the verifier',
+});
+
+/**
+ * Time the chain verification takes — useful for capacity planning as
+ * the audit table grows.
+ */
+export const auditChainVerifyDuration = meter.createHistogram(
+  'gbmis_audit_chain_verify_duration_seconds',
+  {
+    description: 'Duration of an audit chain verification run',
+    unit: 's',
+  },
+);

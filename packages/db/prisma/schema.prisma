@@ -789,6 +789,17 @@ model AuditEvent {
   success               Boolean
   reasonCode            String?
   additionalContext     Json?
+  // Tamper-evident hash chain. Set by the BEFORE INSERT trigger
+  // `audit_events_assign_hash` in migration 20260428100000. The
+  // application never writes these directly — and per the
+  // append-only triggers in the same migration, never updates them.
+  //
+  // rowHash carries a NOT NULL constraint at the DB level but is
+  // declared optional here so Prisma's create input doesn't require
+  // the application to provide it. The trigger fills it in before
+  // the row reaches storage; a real null is impossible at runtime.
+  previousRowHash       Bytes?
+  rowHash               Bytes?
 
   actor                 User?        @relation("ActorUser", fields: [actorUserId], references: [id])
 

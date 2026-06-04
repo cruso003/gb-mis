@@ -154,7 +154,7 @@ Run all checks. Any failure aborts the restore and triggers a re-attempt or esca
 3. **RLS preserved**: `psql … -c "SELECT tablename FROM pg_tables WHERE schemaname='public' AND rowsecurity = false AND tablename IN ('gbv_cases','beneficiaries','incidents','services_provided','referrals','case_attachments','households','vsla_groups','community_sessions');"` returns **zero rows**. Any row here means RLS was lost in the restore — escalate.
 4. **Audit hash chain**: run the verification job against the restored database:
    ```
-   docker run --rm --env-file /run/gb-mis-restore/env $REGISTRY/gb-mis-api@$API_DIGEST node dist/scripts/verify-audit-chain.js --full
+   docker run --rm --env-file /run/gb-mis-restore/env $REGISTRY/gb-mis-api@$API_DIGEST node scripts/verify-audit-chain.cjs --full
    ```
    Output: `OK <N> rows verified, chain intact from row 1 to row N`. A break in the chain at the restore point itself is acceptable and expected (the next live row will hash the prior row); a break **earlier** indicates corruption — escalate.
 5. **Row counts on key entities** (compare with the pre-deploy capture, accounting for the time gap):

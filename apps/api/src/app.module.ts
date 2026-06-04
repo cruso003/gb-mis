@@ -1,6 +1,7 @@
 import type { MiddlewareConsumer, NestModule} from '@nestjs/common';
 import { Module, RequestMethod } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { TerminusModule, PrismaHealthIndicator } from '@nestjs/terminus';
 import { LoggerModule } from 'nestjs-pino';
 
@@ -49,6 +50,9 @@ import { VslaModule } from './modules/vsla/vsla.module';
         };
       },
     }),
+
+    // Scheduled tasks (nightly audit chain verification, etc.)
+    ScheduleModule.forRoot(),
 
     // Health checks
     TerminusModule,

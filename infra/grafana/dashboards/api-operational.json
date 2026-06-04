@@ -164,6 +164,84 @@
           "legendFormat": "p95"
         }
       ]
+    },
+    {
+      "type": "row",
+      "id": 102,
+      "title": "Audit chain integrity",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 24 },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "type": "stat",
+      "id": 7,
+      "title": "Audit chain broken links (cumulative)",
+      "description": "Total broken links detected by the nightly verifier. ANY non-zero value is a class-A signal per docs/runbooks/incident-response.md § A — the audit log may have been tampered with. Pages the on-call.",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 25 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 1 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(gbmis_audit_chain_breaks_total)"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "id": 8,
+      "title": "Audit chain verifier runs",
+      "description": "Verification runs by outcome. The `intact` series should tick every 24h (nightly cron); the `broken` and `error` series should be flat at zero.",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 10, "x": 8, "y": 25 },
+      "fieldConfig": {
+        "defaults": { "unit": "short", "color": { "mode": "palette-classic" } },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (outcome) (increase(gbmis_audit_chain_verify_total[24h]))",
+          "legendFormat": "{{outcome}}"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "id": 9,
+      "title": "Audit chain verifier duration",
+      "description": "Time to walk the chain. Trends matter — a rising duration indicates the audit table is growing faster than expected and the nightly cron will eventually run long. Tier the table when this approaches the cron window.",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 6, "x": 18, "y": 25 },
+      "fieldConfig": {
+        "defaults": { "unit": "s", "color": { "mode": "palette-classic" } },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(gbmis_audit_chain_verify_duration_seconds_bucket[24h])))",
+          "legendFormat": "p95"
+        }
+      ]
     }
   ],
   "refresh": "30s",

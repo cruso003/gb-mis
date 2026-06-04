@@ -117,7 +117,7 @@ Complete every check. Failure of any check triggers the rollback criteria in sec
 2. **Audit emission**: create a test record under the test account; query the audit store: `psql "$DB_AUDIT_URL" -c "SELECT action, entity_type, occurred_at FROM audit_log ORDER BY occurred_at DESC LIMIT 5;"`. The action must appear within 10 seconds.
 3. **Hash chain**: trigger an on-demand audit hash-chain verification:
    ```
-   docker exec gb-mis-api node dist/scripts/verify-audit-chain.js --since '5 minutes ago'
+   docker exec gb-mis-api node scripts/verify-audit-chain.cjs --since '5 minutes ago'
    ```
    Output: `OK <N> rows verified`.
 4. **DHIS2 sync worker**: trigger a heartbeat job and verify it consumes:
