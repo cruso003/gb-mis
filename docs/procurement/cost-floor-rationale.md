@@ -12,16 +12,14 @@ especially because the data this system holds is GBV survivor data, and
 under-pricing here is not a finance question, it is a survivor-safety
 question.
 
-This document does three things:
+This document does two things:
 
 1. Shows that **$200K USD is the floor** at which the TOR's
    deliverables can be honestly met by a Liberia-based firm — and
    acknowledges that even that price assumes part of the firm's
    motivation is the **long-term relationship with the Ministry**, not
    pure commercial return.
-2. Names what **"World Bank experience"** means in concrete terms, so
-   the evaluation panel can verify it rather than take it on faith.
-3. Translates each price reduction into the **specific corner that
+2. Translates each price reduction into the **specific corner that
    gets cut** and the **survivor-impact outcome** that follows. A
    $100K bid is not "a cheaper $200K bid" — it is a different system
    with different risks.
@@ -33,51 +31,12 @@ specialist on the team and a regional pen-test firm.
 
 ---
 
-## 1. What "World Bank experience" means
-
-The phrase appears in the TOR's Key Staff Qualification table
-("Experience working on World Bank or similar donor funded projects is
-an advantage"). Without it, a firm spends weeks of project time
-discovering things that an experienced firm already knows. The
-practical content of "WB experience" is:
-
-| WB process knowledge | What an inexperienced firm gets wrong |
-|---|---|
-| **Audit Trail Form (Anex_1)** acceptance process | First deliverable submission rejected on format; cycle repeats |
-| **5-working-day approval window** for the Deputy Minister | Timeline assumes 1-day turnaround; project slips by weeks |
-| **PMU vs. Task Team vs. Implementing Agency** dynamics | Sends technical questions to the wrong actor; loses time and trust |
-| **Bank Procurement Framework** (NPF / SPP / cost norms) | Bid quoted in formats the panel cannot evaluate cleanly |
-| **Safeguard reporting** (ESF where applicable, GBV-specific protocols) | Misses required disclosure language; triggers a compliance review |
-| **Mid-term review (MTR)** cadence with the Task Team | Doesn't prepare evidence in advance; MTR becomes a scramble |
-| **Restructuring / no-cost extension** processes | When scope shifts mid-project, can't navigate the amendment |
-| **Disbursement-linked indicators (DLI)** alignment | Builds an MIS that doesn't speak to the parent project's results framework |
-| **GRM (Grievance Redress Mechanism)** expectations | Doesn't surface a complaints channel; a GBV-specific finding follows |
-| **GBV-specific WB safeguards** (Good Practice Note on GBV) | Doesn't structure the system to meet documented WB GBV operating norms |
-
-A firm that has "WB experience" can be verified by asking for:
-
-- Two or more **completed** WB-funded contracts (not bids, completed)
-- Names of the PMU and Task Team leads on each
-- The **Audit Trail Form** from at least one closed deliverable
-- A **GBV-related** engagement specifically (not just any WB project)
-
-This matters because the GB MIS is unusually exposed. The TOR explicitly
-calls out CEDAW, BPfA, AU WPS, SDG-5 reporting — these frameworks have
-specific evidence requirements that an experienced firm has navigated
-before.
-
-A firm without this experience is not unable to deliver; they're
-**slower and more expensive in elapsed time** even if their day-rate is
-lower. The PMU should factor that in.
-
----
-
-## 2. The $200K bid — full transparency
+## 1. The $200K bid — full transparency
 
 Below is what a competent Liberia-based firm using the open-source GB
 MIS codebase as a foundation must allocate to honestly meet the TOR.
 
-### 2.1 Labour (16 weeks across 2 phases)
+### 1.1 Labour (16 weeks across 2 phases)
 
 | Role | Weeks × utilisation | Local-rate $ / wk | Subtotal |
 |---|---|---:|---:|
@@ -89,7 +48,7 @@ MIS codebase as a foundation must allocate to honestly meet the TOR.
 | Training coordinator + 1 trainer (6 counties) | 12 | $1,500 | $18,000 |
 | **Labour subtotal** | | | **~$163,500** |
 
-### 2.2 Direct costs
+### 1.2 Direct costs
 
 | Item | Amount |
 |---|---:|
@@ -99,7 +58,7 @@ MIS codebase as a foundation must allocate to honestly meet the TOR.
 | Hosting infrastructure (Phase 1 staging only; production hosting borne by MOGCSP per the TOR) | $0 |
 | **Direct subtotal** | **~$35,000** |
 
-### 2.3 Bid math
+### 1.3 Bid math
 
 ```
 Labour                                    $163,500
@@ -112,11 +71,11 @@ Bid total                                 $200,000
 
 **Read that overhead line again.** A typical firm overhead in this
 region is 15–25%. At $200K the overhead/margin is effectively zero.
-This is not a normal commercial bid — see §3.
+This is not a normal commercial bid — see §2.
 
 ---
 
-## 3. Why a competent firm might still take $200K — relationship pricing
+## 2. Why a competent firm might still take $200K — relationship pricing
 
 A firm that prices honestly at $200K is doing so for reasons that are
 not in this contract's P&L:
@@ -163,7 +122,7 @@ budget for that.
 
 ---
 
-## 4. The strain of operating at $200K
+## 3. The strain of operating at $200K
 
 Even with the codebase advantage and the relationship discount, a firm
 running at $200K is operating with no slack. The specific pressure
@@ -185,13 +144,13 @@ say "no" to verbally-requested additions. MOGCSP should expect this.
 
 ---
 
-## 5. What happens below $200K — scenarios with named outcomes
+## 4. What happens below $200K — scenarios with named outcomes
 
 The TOR has four payment tranches summing to 100% of the contract
 value. Cutting the total forces cuts inside those tranches. Below is
 what each price reduction concretely means.
 
-### 5.1 At $150K — "tight but defensible"
+### 4.1 At $150K — "tight but defensible"
 
 Approximately a 25% cut from $200K. The firm absorbs this by:
 
@@ -220,7 +179,7 @@ A $150K delivery **works** but produces a system MOGCSP must invest in
 heavily after handover. The firm's risk: if anything goes wrong in the
 field test (Week 11), there is no budget to fix it.
 
-### 5.2 At $100K — "the wheels come off"
+### 4.2 At $100K — "the wheels come off"
 
 Approximately a 50% cut. To make this number, the firm must:
 
@@ -270,7 +229,7 @@ A $100K delivery **damages MOGCSP** in measurable ways. The savings
 relative to a $200K delivery (~$100K) are eaten — usually with
 interest — by remediation costs in the first 18 months of operation.
 
-### 5.3 At $50K — "marketing budget, not a delivery"
+### 4.3 At $50K — "marketing budget, not a delivery"
 
 A bid at this level is one of three things:
 
@@ -294,7 +253,7 @@ disqualification regardless of price**.
 
 ---
 
-## 6. Cost cuts mapped to survivor-impact outcomes
+## 5. Cost cuts mapped to survivor-impact outcomes
 
 The TOR repeatedly invokes survivor safety; this table makes the
 cost-to-outcome translation explicit.
@@ -313,7 +272,7 @@ cost-to-outcome translation explicit.
 
 ---
 
-## 7. Red flags an evaluation panel should look for
+## 6. Red flags an evaluation panel should look for
 
 Independent of price, the following are signals that a bid is unlikely
 to deliver what the TOR scopes:
@@ -336,7 +295,7 @@ conversation before scoring, regardless of price.
 
 ---
 
-## 8. The defensible $200K position
+## 7. The defensible $200K position
 
 A firm bidding $200K can stand behind this number when challenged:
 
@@ -353,17 +312,17 @@ A firm bidding $200K can stand behind this number when challenged:
 - **Training reaches all 6 counties** with clustered trips, two rounds
   total.
 - **Relationship pricing is disclosed.** The firm signs the
-  acknowledgement (§3) that part of the rationale for taking this
+  acknowledgement (§2) that part of the rationale for taking this
   price is the long-term partnership with MOGCSP.
 
 A bid below $200K should explain in writing **which of the above it is
-cutting and why the outcome in §6 will not occur.** A bid that cannot
+cutting and why the outcome in §5 will not occur.** A bid that cannot
 make that explanation should not be selected, even if the price is
 lower.
 
 ---
 
-## 9. What the panel should ask each bidder
+## 8. What the panel should ask each bidder
 
 These questions, asked of every bid regardless of price, surface the
 real shape of the offer:
@@ -395,7 +354,7 @@ risk; either is informative.
 
 ---
 
-## 10. Bottom line for the panel
+## 9. Bottom line for the panel
 
 - **$200K is the honest floor** for a Liberia-based firm reusing the
   existing GB MIS codebase, with disclosed relationship pricing. This
@@ -403,7 +362,7 @@ risk; either is informative.
 - **$150K is achievable** but cuts the Gender Specialist and most of
   the post-deployment support — the firm is gambling on a quiet
   field test.
-- **$100K is dangerous.** The list of foreseeable outcomes in §5.2 is
+- **$100K is dangerous.** The list of foreseeable outcomes in §4.2 is
   not speculation; it is the documented failure pattern of
   under-priced GBV-data MIS contracts in the region.
 - **$50K is not a delivery price.** It is either a marketing line
