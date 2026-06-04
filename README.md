@@ -97,7 +97,7 @@ The monorepo is in **Stage 3 — Core Development** of the ROADMAP. All Stage 2 
 | **Secondary data (ETL)** | LISGIS CSV and DHS ingestion jobs; `SecondaryDataset` / `SecondaryDataPoint` models; BullMQ queue; dataset API endpoints; web datasets page |
 | **Reports** | `ReportsService` with monthly county, quarterly LWEP, annual CEDAW templates; report-template cards in the web UI |
 | **Audit** | Audit event emission across all mutations and sensitive reads; hash-chain verification job |
-| **DHIS2 sync worker** | BullMQ worker stub wired; push-aggregate and pull-org-unit jobs scaffolded |
+| **DHIS2 sync worker** | Real `Dhis2Client` (PAT + basic auth, 3-attempt retry with exponential backoff, 4xx-not-retried); `push-indicators` with proper period formatting per `Periodicity`, 1000-row batching, response parsing (imported/updated/ignored/conflicts), idempotent via `CREATE_AND_UPDATE`; `pull-orgunits` walks pagination, preserves parent hierarchy via dhis2Id lookup, filters to the Liberia subtree, leaves LWEP-specific fields untouched |
 | **Mobile offline** | WatermelonDB schema (`gbv_cases`, `beneficiaries`, `sync_records`); `GbvCaseModel`, `BeneficiaryModel`, `SyncRecordModel`; `SyncEngine` (delta pull + batch push, PENDING → SYNCED/FAILED); `CaseIntakeScreen` writing offline; `useSyncStatus` hook; quick-exit control; biometric unlock |
 | **Web admin** | Users, roles, audit review, indicator catalog management, secondary datasets |
 | **Public dashboard** | `GET /public/indicators` and `GET /public/counties` (no auth); Next.js ISR page at `/public/dashboard` with MOGCSP branding and framework-grouped indicator table |

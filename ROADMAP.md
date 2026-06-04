@@ -81,7 +81,7 @@ Each phase is organised into stages with an **acceptance gate** at the end. A ga
 - [x] **Secondary data ingestion**: ETL jobs for LISGIS CSV and DHS aggregate data; `SecondaryDataset` / `SecondaryDataPoint` Prisma models; BullMQ queue wired to `DatasetsModule` in the API; dataset list/detail/data-points endpoints; web datasets page
 - [x] **Reports module**: templates for the monthly county report, quarterly LWEP report, and annual CEDAW follow-up (`ReportsService`); report-template cards on the web reports page
 - [x] **Audit module**: event emission across all mutations and sensitive reads; hash-chain verification job
-- [x] **DHIS2 sync worker**: push aggregate values on a schedule; pull org-unit metadata (stub wired to BullMQ)
+- [x] **DHIS2 sync worker**: real `Dhis2Client` with PAT auth + retry; `push-indicators` with period formatting per `Periodicity`, 1000-row batching, proper response parsing and idempotency; `pull-orgunits` walking pagination with parent-hierarchy preservation and LWEP-subtree filtering
 - [x] **Mobile app**: WatermelonDB offline persistence with SQLite adapter; `GbvCaseModel`, `BeneficiaryModel`, `SyncRecordModel`; `SyncEngine` with pull (delta cursor) and push (batch upload, PENDING → SYNCED/FAILED); `CaseIntakeScreen` writing offline records; `useSyncStatus` hook for reactive pending count; biometric unlock; quick-exit control
 - [x] **Web admin**: user and role management; integration configuration; audit review; indicator catalog management; secondary datasets page
 - [x] **Public dashboard**: `GET /public/indicators` and `GET /public/counties` unauthenticated endpoints; Next.js ISR page at `/public/dashboard` with MOGCSP branding, framework-grouped indicator table, county breakdowns; k=5 data note in footer
