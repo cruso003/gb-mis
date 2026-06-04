@@ -71,3 +71,22 @@ export const auditChainVerifyDuration = meter.createHistogram(
     unit: 's',
   },
 );
+
+/**
+ * MFA enforcement checks at JWT validate (entry-point gate) and at
+ * the step-up guard. The `outcome` attribute is one of:
+ *   not_required          — actor role doesn't need MFA
+ *   satisfied             — actor has MFA-enrolled + acr indicates MFA
+ *   denied                — MFA required, denied (no enrollment or no acr)
+ *   step_up_satisfied     — sensitive action allowed; MFA recent
+ *   step_up_denied_no_mfa — step-up needed but session has no MFA
+ *   step_up_denied_stale  — step-up needed; MFA proof too old
+ *
+ * The "denied" + "step_up_denied_*" series feed Grafana alerts:
+ * a sustained denied rate means clients aren't completing the MFA
+ * flow Keycloak is sending them through, which is operationally
+ * actionable.
+ */
+export const mfaCheckCounter = meter.createCounter('gbmis_mfa_check_total', {
+  description: 'MFA enforcement checks at JWT validate and step-up guards',
+});

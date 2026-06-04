@@ -6,3 +6,4 @@ export {
   buildJwksUri,
 } from './keycloak';
 export type { KeycloakTokenPayload, ParsedJwtUser } from './keycloak';
+export { MFA_REQUIRED_ROLES, requiresMfa } from './mfa-roles';

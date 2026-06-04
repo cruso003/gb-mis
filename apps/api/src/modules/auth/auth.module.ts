@@ -4,6 +4,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { PassportModule } from '@nestjs/passport';
 
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { MfaGuard } from '../../common/guards/mfa.guard';
 
 import { JwtStrategy } from './jwt.strategy';
 import { PermissionsGuard } from './permissions.guard';
@@ -16,6 +17,8 @@ import { PermissionsGuard } from './permissions.guard';
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     // Apply PermissionsGuard globally — routes opt in via @RequirePermission()
     { provide: APP_GUARD, useClass: PermissionsGuard },
+    // Apply MfaGuard globally — routes opt in via @RequireMfa()
+    { provide: APP_GUARD, useClass: MfaGuard },
   ],
   exports: [PassportModule],
 })

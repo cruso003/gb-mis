@@ -14,6 +14,7 @@ import {
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { RequireMfa } from '../../common/decorators/require-mfa.decorator';
 import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 import { AuditEvent } from '../../common/interceptors/audit.interceptor';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
@@ -73,8 +74,11 @@ export class UsersController {
 
   @Post(':id/roles/:role')
   @RequirePermission('USER_GRANT_BASIC')
-  @AuditEvent('UPDATE', 'UserRole')
-  @ApiOperation({ summary: 'Assign a role to a user' })
+  @RequireMfa({ maxAgeSeconds: 300 })
+  @AuditEvent('ROLE_GRANT', 'UserRole')
+  @ApiOperation({
+    summary: 'Assign a role to a user — requires step-up MFA in last 5 min',
+  })
   assignRole(
     @Param('id', ParseUUIDPipe) id: string,
     @Param('role') role: Role,
@@ -85,8 +89,11 @@ export class UsersController {
 
   @Delete(':id/roles/:role')
   @RequirePermission('USER_GRANT_BASIC')
-  @AuditEvent('UPDATE', 'UserRole')
-  @ApiOperation({ summary: 'Revoke a role from a user' })
+  @RequireMfa({ maxAgeSeconds: 300 })
+  @AuditEvent('ROLE_REVOKE', 'UserRole')
+  @ApiOperation({
+    summary: 'Revoke a role from a user — requires step-up MFA in last 5 min',
+  })
   revokeRole(
     @Param('id', ParseUUIDPipe) id: string,
     @Param('role') role: Role,

@@ -312,7 +312,7 @@
     "/v1/users/{id}/roles/{role}": {
       "post": {
         "operationId": "UsersController_assignRole",
-        "summary": "Assign a role to a user",
+        "summary": "Assign a role to a user — requires step-up MFA in last 5 min",
         "parameters": [
           {
             "name": "id",
@@ -342,7 +342,7 @@
       },
       "delete": {
         "operationId": "UsersController_revokeRole",
-        "summary": "Revoke a role from a user",
+        "summary": "Revoke a role from a user — requires step-up MFA in last 5 min",
         "parameters": [
           {
             "name": "id",

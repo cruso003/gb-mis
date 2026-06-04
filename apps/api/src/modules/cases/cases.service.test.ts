@@ -46,6 +46,8 @@ const SUPERVISOR_BOMI = {
   permissions: new Set<never>(),
   orgUnitIds: ['orgunit-bomi'],
   countyIds: ['orgunit-bomi'],
+  mfaSatisfied: true,
+  authTime: Math.floor(Date.now() / 1000),
 };
 
 const CASE_WORKER_BOMI = {
@@ -56,6 +58,8 @@ const CASE_WORKER_BOMI = {
   permissions: new Set<never>(),
   orgUnitIds: ['orgunit-bomi'],
   countyIds: ['orgunit-bomi'],
+  mfaSatisfied: true,
+  authTime: Math.floor(Date.now() / 1000),
 };
 
 const PENDING_CASE = {

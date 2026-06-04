@@ -26,10 +26,10 @@ threats in [`SECURITY.md § Threat model`](../../SECURITY.md#threat-model).
 | A1 | OIDC + PKCE auth via Keycloak 25 (no password handling in app code) | ✅ `apps/api/src/modules/auth/auth.module.ts`, `apps/web/src/app/(auth)/`, `apps/mobile/src/auth/AuthProvider.tsx` |
 | A2 | JWT signature verified against Keycloak JWKS with key rotation | ✅ `apps/api/src/modules/auth/jwt.strategy.ts` (RS256 + jwks-rsa) |
 | A3 | Access token TTL ≤ 15 min, refresh ≤ 30 days web / 7 days mobile | ✅ `infra/keycloak/realm-export.json` |
-| A4 | MFA enforced for `SUPER_ADMIN`, `ADMIN`, `ANALYST`, `SUPERVISOR` | ✅ Keycloak realm — verify TOTP requirement is on these roles before pen-test |
+| A4 | MFA enforced for `SUPER_ADMIN`, `ADMIN`, `ANALYST`, `SUPERVISOR` | ✅ Defence in depth: Keycloak realm requires TOTP enrolment for these roles AND `JwtStrategy` independently verifies `user.mfaEnrolled` + `acr` claim on every request, rejecting with `code: MFA_REQUIRED` otherwise. Single source of truth in `packages/auth/src/mfa-roles.ts`. Metric `gbmis_mfa_check_total{outcome}` surfaces denial rate to Grafana |
 | A5 | Brute-force protection on Keycloak (lockout after N failures) | ✅ `infra/keycloak/realm-export.json` brute-force settings |
 | A6 | Session revocation propagates within 30 s | ⚠️ Application caches JWKS for 60s; verify Keycloak revocation list polling matches the SECURITY.md target |
-| A7 | Re-authentication required for sensitive actions (role grant, export, cross-scope read) | ❌ Step-up auth not implemented. Add an `acr` claim check in the permissions guard before the engagement |
+| A7 | Re-authentication required for sensitive actions (role grant, export, cross-scope read) | ⚠️ `@RequireMfa({ maxAgeSeconds })` decorator + `MfaGuard` applied globally. Currently enforced on `POST /v1/users/:id/roles/:role` and `DELETE /v1/users/:id/roles/:role` (5-min window). Remaining sensitive actions to decorate: PII exports, audit-log export, the cross-scope supervisor override (deferred with B6) |
 | A8 | Simultaneous-session limit ≤ 3 per user | ⚠️ Configurable in Keycloak — confirm it's set in the production realm export, not just dev |
 
 🔒 **MOGCSP approval required**: signed-off Keycloak production realm export reviewed by the ICT Director.

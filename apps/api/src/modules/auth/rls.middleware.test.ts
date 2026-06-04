@@ -24,6 +24,8 @@ function makeUser(overrides: Partial<AuthenticatedUser>): AuthenticatedUser {
     permissions: new Set(),
     orgUnitIds: [],
     countyIds: [],
+    mfaSatisfied: true,
+    authTime: Math.floor(Date.now() / 1000),
     ...overrides,
   };
 }
